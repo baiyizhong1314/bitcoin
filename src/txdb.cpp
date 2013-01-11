@@ -78,6 +78,10 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
 }
 
 CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) : CLevelDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {
+    if (!Read('S', salt)) {
+        salt = GetRandHash();
+        Write('S', salt);
+    }
 }
 
 bool CBlockTreeDB::ReadBlockFileInfo(int nFile, CBlockFileInfo &info) {
@@ -173,6 +177,52 @@ bool CBlockTreeDB::WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos>
     CLevelDBBatch batch;
     for (std::vector<std::pair<uint256,CDiskTxPos> >::const_iterator it=vect.begin(); it!=vect.end(); it++)
         batch.Write(make_pair(DB_TXINDEX, it->first), it->second);
+    return WriteBatch(batch);
+}
+
+bool CBlockTreeDB::ReadAddrIndex(const uint160 &addrid, std::vector<CExtDiskTxPos> &list) {
+    boost::scoped_ptr<leveldb::Iterator> pcursor(NewIterator());
+    uint64_t lookupid;
+    {
+        CHashWriter ss(SER_GETHASH, 0);
+        ss << salt;
+        ss << addrid;
+        lookupid = ss.GetHash().GetCheapHash();
+    }
+    {
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        ssKey << std::make_pair('a', lookupid);
+        leveldb::Slice slKey(&ssKey[0], ssKey.size());
+        pcursor->Seek(slKey);
+    }
+    while (pcursor->Valid()) {
+        std::pair<std::pair<char, uint64_t>, CExtDiskTxPos> key;
+        leveldb::Slice slKey = pcursor->key();
+        try {
+            CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
+            ssKey >> key;
+        } catch(std::exception &e) {
+            return error("%s: Deserialize or I/O error - %s", __func__, e.what());
+        }
+        if (key.first.first == 'a' && key.first.second == lookupid) {
+            list.push_back(key.second);
+        } else {
+            break;
+        }
+        pcursor->Next();
+    }
+    return true;
+}
+
+bool CBlockTreeDB::AddAddrIndex(const std::vector<std::pair<uint160, CExtDiskTxPos> > &list) {
+    unsigned char foo[0];
+    CLevelDBBatch batch;
+    for (std::vector<std::pair<uint160, CExtDiskTxPos> >::const_iterator it = list.begin(); it != list.end(); ++it) {
+        CHashWriter ss(SER_GETHASH, 0);
+        ss << salt;
+        ss << it->first;
+        batch.Write(std::make_pair(std::make_pair('a', ss.GetHash().GetCheapHash()), it->second), FLATDATA(foo));
+    }
     return WriteBatch(batch);
 }
 
