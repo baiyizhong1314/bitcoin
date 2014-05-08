@@ -337,6 +337,7 @@ static const CRPCCommand vRPCCommands[] =
 
     /* Address index extensions */
     { "address index",      "searchrawtransactions",  &searchrawtransactions,  false },
+    { "address index",      "listallunspent",         &listallunspent,         false },
 
 #ifdef ENABLE_WALLET
     /* Wallet */
