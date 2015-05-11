@@ -69,9 +69,6 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "getblock", 1 },
     { "gettransaction", 1 },
     { "getrawtransaction", 1 },
-    { "searchrawtransactions", 1 },
-    { "searchrawtransactions", 2 },
-    { "searchrawtransactions", 3 },
     { "createrawtransaction", 0 },
     { "createrawtransaction", 1 },
     { "signrawtransaction", 1 },
@@ -178,6 +175,12 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "omni_createrawtx_change", 1 },
     { "omni_createrawtx_change", 3 },
     { "omni_createrawtx_change", 4 },
+
+    /* Address index extensions */
+    { "searchrawtransactions", 1 },
+    { "searchrawtransactions", 2 },
+    { "searchrawtransactions", 3 },
+    { "searchrawtransactions", 4 },
 };
 
 class CRPCConvertTable
