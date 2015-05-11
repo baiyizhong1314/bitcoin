@@ -69,9 +69,6 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "getblock", 1 },
     { "gettransaction", 1 },
     { "getrawtransaction", 1 },
-    { "searchrawtransactions", 1 },
-    { "searchrawtransactions", 2 },
-    { "searchrawtransactions", 3 },
     { "createrawtransaction", 0 },
     { "createrawtransaction", 1 },
     { "signrawtransaction", 1 },
@@ -223,6 +220,12 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "omni_createpayload_canceltradesbypair", 0 },
     { "omni_createpayload_canceltradesbypair", 1 },
     { "omni_createpayload_cancelalltrades", 0 },
+
+    /* Address index extensions */
+    { "searchrawtransactions", 1 },
+    { "searchrawtransactions", 2 },
+    { "searchrawtransactions", 3 },
+    { "searchrawtransactions", 4 },
 };
 
 class CRPCConvertTable
@@ -275,4 +278,3 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
 
     return params;
 }
-
