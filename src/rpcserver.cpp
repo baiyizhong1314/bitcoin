@@ -260,7 +260,6 @@ static const CRPCCommand vRPCCommands[] =
     { "decoderawtransaction",   &decoderawtransaction,   false,     false,      false },
     { "decodescript",           &decodescript,           false,     false,      false },
     { "getrawtransaction",      &getrawtransaction,      false,     false,      false },
-    { "searchrawtransactions",  &searchrawtransactions,  false,     false,      false },
     { "sendrawtransaction",     &sendrawtransaction,     false,     false,      false },
     { "signrawtransaction",     &signrawtransaction,     false,     false,      false }, /* uses wallet if enabled */
 
@@ -268,6 +267,9 @@ static const CRPCCommand vRPCCommands[] =
     { "createmultisig",         &createmultisig,         true,      true ,      false },
     { "validateaddress",        &validateaddress,        true,      false,      false }, /* uses wallet if enabled */
     { "verifymessage",          &verifymessage,          false,     false,      false },
+
+    /* Address index extensions */
+    { "searchrawtransactions",  &searchrawtransactions,  false,     false,      false },
 
 #ifdef ENABLE_WALLET
     /* Wallet */
