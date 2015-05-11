@@ -106,66 +106,6 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
     }
 }
 
-Value searchrawtransactions(const Array &params, bool fHelp)
-{
-    if (fHelp || params.size() < 1 || params.size() > 4)
-        throw runtime_error(
-            "searchrawtransactions <address> [verbose=1] [skip=0] [count=100]\n");
-
-    if (!fAddrIndex)
-        throw JSONRPCError(RPC_MISC_ERROR, "Address index not enabled");
-
-    CBitcoinAddress address(params[0].get_str());
-    if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
-    CTxDestination dest = address.Get();
-
-    std::set<CExtDiskTxPos> setpos;
-    if (!FindTransactionsByDestination(dest, setpos))
-        throw JSONRPCError(RPC_DATABASE_ERROR, "Cannot search for address");
-
-    int nSkip = 0;
-    int nCount = 100;
-    bool fVerbose = true;
-    if (params.size() > 1)
-        fVerbose = (params[1].get_int() != 0);
-    if (params.size() > 2)
-        nSkip = params[2].get_int();
-    if (params.size() > 3)
-        nCount = params[3].get_int();
-
-    if (nSkip < 0)
-        nSkip += setpos.size();
-    if (nSkip < 0)
-        nSkip = 0;
-    if (nCount < 0)
-        nCount = 0;
-
-    std::set<CExtDiskTxPos>::const_iterator it = setpos.begin();
-    while (it != setpos.end() && nSkip--) it++;
-
-    Array result;
-    while (it != setpos.end() && nCount--) {
-        CTransaction tx;
-        uint256 hashBlock;
-        if (!ReadTransaction(tx, *it, hashBlock))
-            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Cannot read transaction from disk");
-        CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-        ssTx << tx;
-        string strHex = HexStr(ssTx.begin(), ssTx.end());
-        if (fVerbose) {
-            Object object;
-            TxToJSON(tx, hashBlock, object);
-            object.push_back(Pair("hex", strHex));
-            result.push_back(object);
-        } else {
-            result.push_back(strHex);
-        }
-        it++;
-    }
-    return result;
-}
-
 Value getrawtransaction(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
@@ -847,3 +787,107 @@ Value sendrawtransaction(const Array& params, bool fHelp)
 
     return hashTx.GetHex();
 }
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Address index extensions
+//
+
+Value searchrawtransactions(const Array &params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 5)
+        throw runtime_error(
+            "searchrawtransactions \"address\" ( verbose skip count includeorphans )\n"
+
+            "\nReturns an array of all confirmed transactions associated with address.\n"
+
+            "\nNote: as per default, orphaned transactions, which are not part of the"
+            "active chain, are included in the results.\n"
+
+            "\nArguments:\n"
+            "1. address          (string, required) The Bitcoin address\n"
+            "2. verbose          (numeric, optional, default=1) If 0, return only transaction hex\n"
+            "3. skip             (numeric, optional, default=0) The number of transactions to skip\n"
+            "4. count            (numeric, optional, default=100) The number of transactions to return\n"
+            "5. includeorphans   (numeric, optional, default=1) If 0, exclude orphaned transactions\n"
+
+            "\nExamples\n"
+            + HelpExampleCli("searchrawtransactions", "1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P")
+            + HelpExampleCli("searchrawtransactions", "1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P 1 500 5 0")
+            + HelpExampleRpc("searchrawtransactions", "1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P, 1, 500, 5, 0")
+        );
+
+    if (!fAddrIndex)
+        throw JSONRPCError(RPC_MISC_ERROR, "Address index not enabled");
+
+    RPCTypeCheck(params, list_of(str_type)(int_type)(int_type)(int_type)(int_type));
+
+    CBitcoinAddress address(params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+    CTxDestination dest = address.Get();
+
+    std::set<CExtDiskTxPos> setpos;
+    if (!FindTransactionsByDestination(dest, setpos))
+        throw JSONRPCError(RPC_DATABASE_ERROR, "Cannot search for address");
+
+    bool fVerbose = true;
+    if (params.size() > 1)
+        fVerbose = (params[1].get_int() != 0);
+
+    int nSkip = 0;
+    if (params.size() > 2)
+        nSkip = params[2].get_int();
+    if (nSkip < 0)
+        nSkip += setpos.size();
+
+    int nCount = 100;
+    if (params.size() > 3)
+        nCount = params[3].get_int();
+
+    bool fIncludeOrphans = true;
+    if (params.size() > 4)
+        fIncludeOrphans = (params[4].get_int() != 0);
+
+    std::set<CExtDiskTxPos>::const_iterator it = setpos.begin();
+    while (it != setpos.end() && nSkip--)
+        it++;
+
+    Array result;
+    while (it != setpos.end() && nCount > 0) {
+        CTransaction tx;
+        uint256 hashBlock;
+        if (!ReadTransaction(tx, *it, hashBlock))
+            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Cannot read transaction from disk");
+
+        bool fOrphaned = true;
+        if (!fIncludeOrphans && hashBlock != 0) {
+            BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
+            if (mi != mapBlockIndex.end() && (*mi).second) {
+                CBlockIndex* pindex = (*mi).second;
+                fOrphaned = !chainActive.Contains(pindex);
+            }
+        }
+        if (!fIncludeOrphans && fOrphaned) {
+            it++;
+            continue;
+        }
+
+        std::string strHex = EncodeHexTx(tx);
+
+        if (fVerbose) {
+            Object entry;
+            entry.push_back(Pair("hex", strHex));
+            TxToJSON(tx, hashBlock, entry);
+            result.push_back(entry);
+        } else {
+            result.push_back(strHex);
+        }
+
+        nCount--;
+        it++;
+    }
+
+    return result;
+}
+
