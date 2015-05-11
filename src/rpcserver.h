@@ -210,7 +210,6 @@ extern json_spirit::Value setmocktime(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value resendwallettransactions(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getrawtransaction(const json_spirit::Array& params, bool fHelp); // in rcprawtransaction.cpp
-extern json_spirit::Value searchrawtransactions(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listunspent(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value lockunspent(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listlockunspent(const json_spirit::Array& params, bool fHelp);
@@ -236,6 +235,9 @@ extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value getchaintips(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
+
+// Address index extensions
+extern json_spirit::Value searchrawtransactions(const json_spirit::Array& params, bool fHelp); // in rcprawtransaction.cpp
 
 // in rest.cpp
 extern bool HTTPReq_REST(AcceptedConnection *conn,

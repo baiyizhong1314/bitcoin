@@ -317,7 +317,6 @@ static const CRPCCommand vRPCCommands[] =
     { "rawtransactions",    "decoderawtransaction",   &decoderawtransaction,   true  },
     { "rawtransactions",    "decodescript",           &decodescript,           true  },
     { "rawtransactions",    "getrawtransaction",      &getrawtransaction,      true  },
-    { "rawtransactions",    "searchrawtransactions",  &searchrawtransactions,  false },
     { "rawtransactions",    "sendrawtransaction",     &sendrawtransaction,     false },
     { "rawtransactions",    "signrawtransaction",     &signrawtransaction,     false }, /* uses wallet if enabled */
 
@@ -335,6 +334,9 @@ static const CRPCCommand vRPCCommands[] =
 #ifdef ENABLE_WALLET
     { "hidden",             "resendwallettransactions", &resendwallettransactions, true},
 #endif
+
+    /* Address index extensions */
+    { "address index",      "searchrawtransactions",  &searchrawtransactions,  false },
 
 #ifdef ENABLE_WALLET
     /* Wallet */
