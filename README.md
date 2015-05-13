@@ -1,5 +1,91 @@
-Omni Core (Beta) integration/staging tree
-=================================================
+Omni Core (Beta) address-indexed
+================================
+
+Modifications
+-------------
+
+This branch is based on the [mscore-0.0.9](https://github.com/dexX7/bitcoin/tree/mscore-0.0.9) ([diff](https://github.com/mastercoin-MSC/mastercore/compare/mscore-0.0.9...dexX7:addrindex-mscore-0.0.9)) branch of Omni Core and includes the required changes to allow extended transaction lookups based on an address.
+
+The extensions are available for different bases:
+
+- [Bitcoin Core 0.9](https://github.com/dexX7/bitcoin/tree/addrindex-0.9) ([diff](https://github.com/bitcoin/bitcoin/compare/0.9...dexX7:addrindex-0.9))
+- [Bitcoin Core 0.10](https://github.com/dexX7/bitcoin/tree/addrindex-0.10) ([diff](https://github.com/bitcoin/bitcoin/compare/0.10...dexX7:addrindex-0.10))
+- [Bitcoin Core 0.11](https://github.com/dexX7/bitcoin/tree/addrindex-0.11) ([diff](https://github.com/bitcoin/bitcoin/compare/0.11...dexX7:addrindex-0.11))
+- [Omni Core 0.0.10](https://github.com/dexX7/bitcoin/tree/addrindex-omnicore-0.0.10) ([diff](https://github.com/OmniLayer/omnicore/compare/omnicore-0.0.10...dexX7:addrindex-omnicore-0.0.10))
+
+### Setup and configuration
+
+Use `-addrindex=1` to enable address-based indexing of transactions.
+Reindexing via `-reindex` is required the first time.
+
+### RPC commands
+
+The following new RPC commands are available:
+
+```
+> searchrawtransactions "address" (verbose skip count includeorphans)
+
+Description:
+Returns an array of all confirmed transactions associated with address.
+
+Note: as per default, orphaned transactions, which are not part of the active chain, are 
+included in the results.
+
+Arguments:
+1. address          (string, required) The Bitcoin address
+2. verbose          (numeric, optional, default=1) If 0, return only transaction hex
+3. skip             (numeric, optional, default=0) The number of transactions to skip
+4. count            (numeric, optional, default=100) The number of transactions to return
+5. includeorphans   (numeric, optional, default=1) If 0, exclude orphaned transactions
+```
+
+```
+> listallunspent "address" ( verbose minconf maxconf maxreqsigs )
+
+Description:
+Returns an array of confirmed, unspent transaction outputs with between minconf and maxconf 
+(inclusive) confirmations, spendable by the provided address, whereby maximal maxreqsigs 
+signatures are required to redeem the output.
+
+Arguments:
+1. address          (string, required) The Bitcoin address
+2. verbose          (numeric, optional, default=0) If 0, exclude reqSigs, addresses, scriptPubKey (asm, hex), blockhash, blocktime, blockheight
+3. minconf          (numeric, optional, default=1) The minimum confirmations to filter.
+4. maxconf          (numeric, optional, default=9999999) The maximum confirmations to filter
+5. maxreqsigs       (numeric, optional, default=1) The number of signatures required to spend the output
+```
+
+```
+> getallbalance "address" ( minconf maxreqsigs )
+
+Description:
+Returns the sum of confirmed, spendable transaction outputs by address with at least minconf 
+confirmations, whereby maximal maxreqsigs signatures are allowed to be required to redeem an 
+output.
+
+Arguments:
+1. address          (string, required) The Bitcoin address
+2. minconf          (numeric, optional, default=1) The minimum confirmations to filter
+3. maxreqsigs       (numeric, optional, default=1) The number of signatures required to spend an output
+```
+
+```
+> gettxposition "txid"
+
+Description:
+Returns information related to the position of transaction.
+
+Arguments:
+1. txid          (string, required) The transaction id
+
+Result:
+{
+  "txid" : "hash",        (string) The transaction id (same as provided)
+  "blockhash" : "hash",   (string) The block hash
+  "blockheight" : n,      (numeric) The block height (if orphaned: -1, unconfirmed: 0)
+  "position" : n          (numeric) The position of transaction within block (if unconfirmed: -1)
+}
+```
 
 Copyright (c) 2013-2015 Omni Core Developers
 
