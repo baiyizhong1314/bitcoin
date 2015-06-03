@@ -51,6 +51,7 @@ int const MAX_STATE_HISTORY = 50;
 #define FORMAT_BOOST_SPKEY      "sp-%d"
 
 // Omni Layer Transaction Class
+#define NO_MARKER    0
 #define OMNI_CLASS_A 1
 #define OMNI_CLASS_B 2
 #define OMNI_CLASS_C 3
