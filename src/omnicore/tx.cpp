@@ -231,7 +231,7 @@ unsigned int prop_id;
   PrintToLog("\t             URL: %s\n", url);
   PrintToLog("\t            Data: %s\n", data);
 
-  if (!isTransactionTypeAllowed(block, prop_id, type, version))
+  if (!IsTransactionTypeAllowed(block, prop_id, type, version))
   {
     error_code = (PKT_ERROR_SP -503);
     return NULL;
@@ -883,7 +883,7 @@ int CMPTransaction::logicMath_SendToOwners()
 {
     LOCK(cs_tally);
 
-    if (!isTransactionTypeAllowed(block, property, type, version)) {
+    if (!IsTransactionTypeAllowed(block, property, type, version)) {
         return (PKT_ERROR_STO -22);
     }
 
@@ -977,7 +977,7 @@ int rc = PKT_ERROR_TRADEOFFER;
       }
 
       // block height checks, for instance DEX is only available on MSC starting with block 290630
-      if (!isTransactionTypeAllowed(block, property, type, version)) return -88888;
+      if (!IsTransactionTypeAllowed(block, property, type, version)) return -88888;
 
       if (obj_o)
       {
@@ -1104,7 +1104,7 @@ int CMPTransaction::logicMath_MetaDExTrade()
 
     int rc = PKT_ERROR_METADEX - 100;
 
-    if (!isTransactionTypeAllowed(block, property, type, version)) return (PKT_ERROR_METADEX -889);
+    if (!IsTransactionTypeAllowed(block, property, type, version)) return (PKT_ERROR_METADEX -889);
 
     // ensure we are not trading same property for itself
     if (property == desired_property) return (PKT_ERROR_METADEX -5);
@@ -1140,7 +1140,7 @@ int CMPTransaction::logicMath_MetaDExCancelPrice()
 
     int rc = PKT_ERROR_METADEX -100;
 
-    if (!isTransactionTypeAllowed(block, property, type, version)) return (PKT_ERROR_METADEX -890);
+    if (!IsTransactionTypeAllowed(block, property, type, version)) return (PKT_ERROR_METADEX -890);
 
     // ensure we are not trading same property for itself
     if (property == desired_property) return (PKT_ERROR_METADEX -5);
@@ -1164,7 +1164,7 @@ int CMPTransaction::logicMath_MetaDExCancelPair()
 {
     int rc = PKT_ERROR_METADEX -100;
 
-    if (!isTransactionTypeAllowed(block, property, type, version)) return (PKT_ERROR_METADEX -891);
+    if (!IsTransactionTypeAllowed(block, property, type, version)) return (PKT_ERROR_METADEX -891);
 
     // ensure we are not trading same property for itself
     if (property == desired_property) return (PKT_ERROR_METADEX - 5);
@@ -1184,7 +1184,7 @@ int CMPTransaction::logicMath_MetaDExCancelEcosystem()
 {
     int rc = PKT_ERROR_METADEX -101;
 
-    if (!isTransactionTypeAllowed(block, ecosystem, type, version, true)) return (PKT_ERROR_METADEX -892);
+    if (!IsTransactionTypeAllowed(block, ecosystem, type, version, true)) return (PKT_ERROR_METADEX -892);
 
     rc = MetaDEx_CANCEL_EVERYTHING(txid, block, sender, ecosystem);
 
@@ -1200,7 +1200,7 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
         return (PKT_ERROR_SP -502);
     }
     unsigned int prop_id = _my_sps->peekNextSPID(ecosystem);
-    if (!isTransactionTypeAllowed(block, prop_id, type, version)) {
+    if (!IsTransactionTypeAllowed(block, prop_id, type, version)) {
         return (PKT_ERROR_SP -503);
     }
     if ('\0' == name[0]) {
@@ -1246,7 +1246,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
         return (PKT_ERROR_SP -502);
     }
     unsigned int prop_id = _my_sps->peekNextSPID(ecosystem);
-    if (!isTransactionTypeAllowed(block, prop_id, type, version)) {
+    if (!IsTransactionTypeAllowed(block, prop_id, type, version)) {
         return (PKT_ERROR_SP -503);
     }
     if ('\0' == name[0]) {
@@ -1356,7 +1356,7 @@ int CMPTransaction::logicMath_CreatePropertyMananged()
         return (PKT_ERROR_SP -502);
     }
     unsigned int prop_id = _my_sps->peekNextSPID(ecosystem);
-    if (!isTransactionTypeAllowed(block, prop_id, type, version)) {
+    if (!IsTransactionTypeAllowed(block, prop_id, type, version)) {
         return (PKT_ERROR_SP -503);
     }
     if ('\0' == name[0]) {
@@ -1394,7 +1394,7 @@ int CMPTransaction::logicMath_GrantTokens()
 
     int rc = PKT_ERROR_TOKENS - 1000;
 
-    if (!isTransactionTypeAllowed(block, property, type, version)) {
+    if (!IsTransactionTypeAllowed(block, property, type, version)) {
       PrintToLog("\tRejecting Grant: Transaction type not yet allowed\n");
       return (PKT_ERROR_TOKENS - 22);
     }
@@ -1464,7 +1464,7 @@ int CMPTransaction::logicMath_RevokeTokens()
 
     int rc = PKT_ERROR_TOKENS - 1000;
 
-    if (!isTransactionTypeAllowed(block, property, type, version)) {
+    if (!IsTransactionTypeAllowed(block, property, type, version)) {
       PrintToLog("\tRejecting Revoke: Transaction type not yet allowed\n");
       return (PKT_ERROR_TOKENS - 22);
     }
@@ -1511,7 +1511,7 @@ int CMPTransaction::logicMath_ChangeIssuer()
 {
   int rc = PKT_ERROR_TOKENS - 1000;
 
-  if (!isTransactionTypeAllowed(block, property, type, version)) {
+  if (!IsTransactionTypeAllowed(block, property, type, version)) {
     PrintToLog("\tRejecting Change of Issuer: Transaction type not yet allowed\n");
     return (PKT_ERROR_TOKENS - 22);
   }

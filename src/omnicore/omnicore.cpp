@@ -509,10 +509,16 @@ void calculateFundraiser(uint64_t amtTransfer, unsigned char bonusPerc,
     tokens = std::make_pair(createdTokens_int.convert_to<uint64_t>(), issuerTokens_int.convert_to<uint64_t>());
 }
 
-// certain transaction types are not live on the network until some specific block height
-// certain transactions will be unknown to the client, i.e. "black holes" based on their version
-// the Restrictions array is as such: type, block-allowed-in, top-version-allowed
-bool mastercore::isTransactionTypeAllowed(int txBlock, unsigned int txProperty, unsigned int txType, unsigned short version, bool bAllowNullProperty)
+/**
+ * Checks, if the transaction type and version is supported and enabled.
+ *
+ * Certain transaction types are not live/enabled until some specific block height.
+ * Certain transactions will be unknown to the client, i.e. "black holes" based on their version.
+ *
+ * The restrictions array is as such:
+ *   type, block-allowed-in, top-version-allowed
+ */
+bool mastercore::IsTransactionTypeAllowed(int txBlock, unsigned int txProperty, unsigned int txType, unsigned short version, bool bAllowNullProperty)
 {
 bool bAllowed = false;
 bool bBlackHole = false;
@@ -678,7 +684,10 @@ int TXExodusFundraiser(const CTransaction &wtx, const string &sender, int64_t Ex
   return -1;
 }
 
-static bool isAllowedInputType(int whichType, int nBlock)
+/**
+ * Checks, if the script type is allowed as input.
+ */
+bool mastercore::IsAllowedInputType(int whichType, int nBlock)
 {
     switch (whichType)
     {
@@ -692,7 +701,10 @@ static bool isAllowedInputType(int whichType, int nBlock)
     return false;
 }
 
-static bool isAllowedOutputType(int whichType, int nBlock)
+/**
+ * Checks, if the script type qualifies as output.
+ */
+bool mastercore::IsAllowedOutputType(int whichType, int nBlock)
 {
     switch (whichType)
     {
@@ -726,7 +738,7 @@ static int getEncodingClass(const CTransaction& tx, int nBlock)
         if (!GetOutputType(output.scriptPubKey, outType)) {
             continue;
         }
-        if (!isAllowedOutputType(outType, nBlock)) {
+        if (!IsAllowedOutputType(outType, nBlock)) {
             continue;
         }
 
@@ -816,7 +828,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
             inAll += txPrev.vout[n].nValue;
             if (ExtractDestination(txPrev.vout[n].scriptPubKey, source)) { // extract the destination of the previous transaction's vout[n] and check it's allowed type
                 if (!GetOutputType(txPrev.vout[n].scriptPubKey, whichType)) { ++inputs_errors; break; }
-                if (!isAllowedInputType(whichType, nBlock)) { ++inputs_errors; break; }
+                if (!IsAllowedInputType(whichType, nBlock)) { ++inputs_errors; break; }
                 CBitcoinAddress addressSource(source);
                 inputs_sum_of_values[addressSource.ToString()] += txPrev.vout[n].nValue;
             }
@@ -851,7 +863,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
             txnouttype whichType;
             inAll += txPrev.vout[n].nValue;
             if (!GetOutputType(txPrev.vout[n].scriptPubKey, whichType)) { return -101; }
-            if (!isAllowedInputType(whichType, nBlock)) { return -101; }
+            if (!IsAllowedInputType(whichType, nBlock)) { return -101; }
             if (ExtractDestination(txPrev.vout[n].scriptPubKey, source)) {
                 strSender = CBitcoinAddress(source).ToString();
             }
@@ -906,7 +918,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
     for (unsigned int n = 0; n < wtx.vout.size(); ++n) {
         txnouttype whichType;
         if (!GetOutputType(wtx.vout[n].scriptPubKey, whichType)) { continue; }
-        if (!isAllowedOutputType(whichType, nBlock)) { continue; }
+        if (!IsAllowedOutputType(whichType, nBlock)) { continue; }
         CTxDestination dest;
         if (ExtractDestination(wtx.vout[n].scriptPubKey, dest)) {
             CBitcoinAddress address(dest);
@@ -932,7 +944,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
         for (unsigned k = 0; k < script_data.size(); ++k) { // Step 1, locate the data packet
             txnouttype whichType;
             if (!GetOutputType(wtx.vout[k].scriptPubKey, whichType)) break; // unable to determine type, ignore output
-            if (!isAllowedOutputType(whichType, nBlock)) break;
+            if (!IsAllowedOutputType(whichType, nBlock)) break;
             std::string strSub = script_data[k].substr(2,16); // retrieve bytes 1-9 of packet for peek & decode comparison
             seq = (ParseHex(script_data[k].substr(0,2)))[0]; // retrieve sequence number
             if (("0000000000000001" == strSub) || ("0000000000000002" == strSub)) { // peek & decode comparison
@@ -954,7 +966,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
             for (unsigned k = 0; k < script_data.size(); ++k) { // loop through outputs
                 txnouttype whichType;
                 if (!GetOutputType(wtx.vout[k].scriptPubKey, whichType)) break; // unable to determine type, ignore output
-                if (!isAllowedOutputType(whichType, nBlock)) break;
+                if (!IsAllowedOutputType(whichType, nBlock)) break;
                 seq = (ParseHex(script_data[k].substr(0,2)))[0]; // retrieve sequence number
                 if ((address_data[k] != strDataAddress) && (address_data[k] != exodus_address) && (expectedRefAddressSeq == seq)) { // found reference address with matching sequence number
                     if (strRefAddress.empty()) { // confirm we have not already located a reference address
@@ -980,7 +992,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
                 for (unsigned k = 0; k < script_data.size(); ++k) { // loop through outputs
                     txnouttype whichType;
                     if (!GetOutputType(wtx.vout[k].scriptPubKey, whichType)) break; // unable to determine type, ignore output
-                    if (!isAllowedOutputType(whichType, nBlock)) break;
+                    if (!IsAllowedOutputType(whichType, nBlock)) break;
                     if ((address_data[k] != strDataAddress) && (address_data[k] != exodus_address) && (dataAddressValue == value_data[k])) { // this output matches data output, check if matches exodus output
                         for (unsigned int exodus_idx = 0; exodus_idx < ExodusValues.size(); exodus_idx++) {
                             if (value_data[k] == ExodusValues[exodus_idx]) { //this output matches data address value and exodus address value, choose as ref
@@ -1141,7 +1153,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
             for (unsigned int n = 0; n < wtx.vout.size(); ++n) {
                 txnouttype whichType;
                 if (!GetOutputType(wtx.vout[n].scriptPubKey, whichType)) { continue; }
-                if (!isAllowedOutputType(whichType, nBlock)) { continue; }
+                if (!IsAllowedOutputType(whichType, nBlock)) { continue; }
                 if (whichType == TX_NULL_DATA) {
                     GetScriptPushes(wtx.vout[n].scriptPubKey, op_return_script_data);
                     std::string debug_op_string;
@@ -2253,7 +2265,7 @@ static int64_t selectCoins(const string &FromAddress, CCoinControl &coinControl,
           if (!GetOutputType(pcoin->vout[i].scriptPubKey, whichType))
             continue;
 
-          if (!isAllowedInputType(whichType, nHeight))
+          if (!IsAllowedInputType(whichType, nHeight))
             continue;
 
           CTxDestination dest;
@@ -2309,7 +2321,7 @@ static bool UseEncodingClassC(size_t nDataSize)
     size_t nTotalSize = nDataSize + 2; // Marker "om"
     bool fDataEnabled = GetBoolArg("-datacarrier", true);
     int nBlockNow = GetHeight();
-    if (!isAllowedOutputType(TX_NULL_DATA, nBlockNow)) {
+    if (!IsAllowedOutputType(TX_NULL_DATA, nBlockNow)) {
         fDataEnabled = false;
     }
     return nTotalSize <= nMaxDatacarrierBytes && fDataEnabled;
@@ -3562,7 +3574,7 @@ int CMPTransaction::logicMath_SimpleSend()
 {
     LOCK(cs_tally);
 
-    if (!isTransactionTypeAllowed(block, property, type, version)) {
+    if (!IsTransactionTypeAllowed(block, property, type, version)) {
         return (PKT_ERROR_SEND -22);
     }
 

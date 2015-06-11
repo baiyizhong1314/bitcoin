@@ -525,7 +525,12 @@ int set_wallet_totals();
 
 char *c_strMasterProtocolTXType(int i);
 
-bool isTransactionTypeAllowed(int txBlock, unsigned int txProperty, unsigned int txType, unsigned short version, bool bAllowNullProperty = false);
+/** Checks, if the script type is allowed as input. */
+bool IsAllowedInputType(int whichType, int nBlock);
+/** Checks, if the script type qualifies as output. */
+bool IsAllowedOutputType(int whichType, int nBlock);
+/** Checks, if the transaction type and version is supported and enabled. */
+bool IsTransactionTypeAllowed(int txBlock, unsigned int txProperty, unsigned int txType, unsigned short version, bool bAllowNullProperty = false);
 
 bool getValidMPTX(const uint256 &txid, int *block = NULL, unsigned int *type = NULL, uint64_t *nAmended = NULL);
 
