@@ -231,7 +231,7 @@ bool CMPSPInfo::getSP(unsigned int spid, Entry& info) const
 
     int64_t nSpanTotal = nTimeParse - nTimeStart;
 
-    PrintToConsole("%s(): %.3f ms total, get sp %d: %.3f ms, parse: %.3f ms\n",
+    PrintToLog("%s(): %.3f ms total, get sp %d: %.3f ms, parse: %.3f ms\n",
             __func__,
             0.001 * nSpanTotal,
             spid,
@@ -685,7 +685,7 @@ bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& add
     int64_t nSpanLoop3 = nTimeLoop3 - nTimeLoop2;
     int64_t nSpanTotal = nTimeLoop3 - nTimeStart;
 
-    PrintToConsole("%s(): %.3f ms total, getcrowdsale: %.3f ms, loop 1: %.3f ms, loop 2: %.3f ms (%d props, %d dbs, %.3f ms, %.3f ms/prop), loop 3: %.3f ms (%d props, %d dbs, %.3f ms, %.3f ms/prop)\n",
+    PrintToLog("%s(): %.3f ms total, getcrowdsale: %.3f ms, loop 1: %.3f ms, loop 2: %.3f ms (%d props, %d dbs, %.3f ms, %.3f ms/prop), loop 3: %.3f ms (%d props, %d dbs, %.3f ms, %.3f ms/prop)\n",
             __func__,
             0.001 * nSpanTotal,
             0.001 * nSpanGetCrowd,
