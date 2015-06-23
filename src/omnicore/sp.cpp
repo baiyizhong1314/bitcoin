@@ -313,6 +313,8 @@ unsigned int CMPSPInfo::putSP(unsigned char ecosystem, const Entry& info)
 
 bool CMPSPInfo::getSP(unsigned int spid, Entry& info) const
 {
+    int64_t nTimeStart = GetTimeMicros();
+
     // special cases for constant SPs MSC and TMSC
     if (OMNI_PROPERTY_MSC == spid) {
         info = implied_msc;
@@ -328,15 +330,35 @@ bool CMPSPInfo::getSP(unsigned int spid, Entry& info) const
         return false;
     }
 
+    int64_t nTimeGet = GetTimeMicros();
+    int64_t nSpanGet = nTimeGet - nTimeStart;
+
     // parse the encoded json, failing if it doesnt parse or is an object
     Value spInfoVal;
     if (false == json_spirit::read_string(spInfoStr, spInfoVal) || spInfoVal.type() != json_spirit::obj_type) {
         return false;
     }
 
+    int64_t nTimeRead = GetTimeMicros();
+    int64_t nSpanRead = nTimeRead - nTimeGet;
+
     // transfer to the Entry structure
     Object& spInfo = spInfoVal.get_obj();
     info.fromJSON(spInfo);
+
+    int64_t nTimeParse = GetTimeMicros();
+    int64_t nSpanParse = nTimeParse - nTimeRead;
+
+    int64_t nSpanTotal = nTimeParse - nTimeStart;
+
+    PrintToConsole("%s(): %.3f ms total, get sp %d: %.3f ms, read: %.3f ms, parse: %.3f ms\n",
+            __func__,
+            0.001 * nSpanTotal,
+            spid,
+            0.001 * nSpanGet,
+            0.001 * nSpanRead,
+            0.001 * nSpanParse);
+
     return true;
 }
 
@@ -676,8 +698,14 @@ bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& add
     // 1. loop crowdsales (active/non-active) looking for issuer address
     // 2. loop those crowdsales for that address and check their participant txs in database
 
+    int64_t nTimeStart = GetTimeMicros();
+
     // check for an active crowdsale to this address
     CMPCrowd* pcrowdsale = getCrowd(address);
+
+    int64_t nTimeGetCrowd = GetTimeMicros();
+    int64_t nSpanGetCrowd = nTimeGetCrowd - nTimeStart;
+
     if (pcrowdsale) {
         std::map<std::string, std::vector<uint64_t> >::const_iterator it;
         const std::map<std::string, std::vector<uint64_t> >& database = pcrowdsale->getDatabase();
@@ -692,17 +720,30 @@ bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& add
         }
     }
 
+    int64_t nTimeLoop1 = GetTimeMicros();
+    int64_t nSpanLoop1 = nTimeLoop1 - nTimeGetCrowd;
+
     // if we still haven't found txid, check non active crowdsales to this address
     unsigned int nextSPID = _my_sps->peekNextSPID(1);
     unsigned int nextTestSPID = _my_sps->peekNextSPID(2);
 
+    int64_t nProps = 0;
+    int64_t nDbs = 0;
+    int64_t nSpanGetProp = 0;
+
     for (int64_t tmpPropertyId = 1; tmpPropertyId < nextSPID; tmpPropertyId++) {
+        ++nProps;
         CMPSPInfo::Entry sp;
+
+        int64_t nTime1 = GetTimeMicros();
         if (!_my_sps->getSP(tmpPropertyId, sp)) continue;
+        nSpanGetProp += (GetTimeMicros() - nTime1);
         if (sp.issuer != address) continue;
 
         std::map<std::string, std::vector<uint64_t> >::const_iterator it;
         const std::map<std::string, std::vector<uint64_t> >& database = sp.historicalData;
+        nDbs += database.size();
+
         for (it = database.begin(); it != database.end(); it++) {
             uint256 tmpTxid(it->first); // construct from string
             if (tmpTxid == txid) {
@@ -714,13 +755,27 @@ bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& add
         }
     }
 
+    int64_t nTimeLoop2 = GetTimeMicros();
+    int64_t nSpanLoop2 = nTimeLoop2 - nTimeLoop1;
+
+    int64_t nProps2 = 0;
+    int64_t nDbs2 = 0;
+    int64_t nSpanGetProp2 = 0;
+
     for (int64_t tmpPropertyId = TEST_ECO_PROPERTY_1; tmpPropertyId < nextTestSPID; tmpPropertyId++) {
+        ++nProps2;
         CMPSPInfo::Entry sp;
+
+        int64_t nTime1 = GetTimeMicros();
         if (!_my_sps->getSP(tmpPropertyId, sp)) continue;
+        nSpanGetProp2 += (GetTimeMicros() - nTime1);
+
         if (sp.issuer == address) continue;
 
         std::map<std::string, std::vector<uint64_t> >::const_iterator it;
         const std::map<std::string, std::vector<uint64_t> >& database = sp.historicalData;
+        nDbs2 += database.size();
+
         for (it = database.begin(); it != database.end(); it++) {
             uint256 tmpTxid(it->first); // construct from string
             if (tmpTxid == txid) {
@@ -731,6 +786,26 @@ bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& add
             }
         }
     }
+
+    int64_t nTimeLoop3 = GetTimeMicros();
+    int64_t nSpanLoop3 = nTimeLoop3 - nTimeLoop2;
+    int64_t nSpanTotal = nTimeLoop3 - nTimeStart;
+
+    PrintToConsole("%s(): %.3f ms total, getcrowdsale: %.3f ms, loop 1: %.3f ms, loop 2: %.3f ms (%d props, %d dbs, %.3f ms, %.3f ms/prop), loop 3: %.3f ms (%d props, %d dbs, %.3f ms, %.3f ms/prop)\n",
+            __func__,
+            0.001 * nSpanTotal,
+            0.001 * nSpanGetCrowd,
+            0.001 * nSpanLoop1,
+            0.001 * nSpanLoop2,
+            nProps,
+            nDbs,
+            0.001 * nSpanGetProp,
+            0.001 * nSpanGetProp / nProps,
+            0.001 * nSpanLoop3,
+            nProps2,
+            nDbs2,
+            0.001 * nSpanGetProp2,
+            0.001 * nSpanGetProp2 / nProps2);
 
     // didn't find anything, not a crowdsale purchase
     return false;

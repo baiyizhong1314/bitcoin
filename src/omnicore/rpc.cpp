@@ -27,6 +27,7 @@
 #include "tinyformat.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
+#include "utiltime.h"
 #include "wallet.h"
 
 #include <boost/algorithm/string.hpp>
@@ -1131,12 +1132,29 @@ Value listblocktransactions_MP(const Array& params, bool fHelp)
 // this function standardizes the RPC output for gettransaction_MP and listtransaction_MP into a central function
 int populateRPCTransactionObject(const uint256& txid, Object *txobj, std::string filterAddress = "")
 {
-    //uint256 hash;
-    //hash.SetHex(params[0].get_str());
+
+    int64_t nTimeExists = 0;
+    int64_t nTimeParseTransaction = 0;
+    int64_t nTimeRest = 0;
+    int64_t nTimeGetTransaction = 0;
+    int64_t nTimeJson = 0;
+
+    int64_t nSpanExists = 0;
+    int64_t nSpanParseTransaction = 0;
+    int64_t nSpanGetValid = 0;
+    int64_t nSpanGetCrowd = 0;
+    int64_t nSpanRest = 0;
+    int64_t nSpanGetTransaction = 0;
+    int64_t nSpanJson = 0;
+
+    int64_t nTimeStart = GetTimeMicros();
 
     CTransaction wtx;
     uint256 blockHash = 0;
     if (!GetTransaction(txid, wtx, blockHash, true)) { return MP_TX_NOT_FOUND; }
+
+    nTimeGetTransaction = GetTimeMicros();
+    nSpanGetTransaction = nTimeGetTransaction - nTimeStart;
 
     CMPTransaction mp_obj;
     uint256 wtxid = txid;
@@ -1191,8 +1209,15 @@ int populateRPCTransactionObject(const uint256& txid, Object *txobj, std::string
     // replace initial MP detection with levelDB lookup instead of parse, this is much faster especially in calls like list/search
     if (p_txlistdb->exists(wtxid))
     {
+        nTimeExists = GetTimeMicros();
+        nSpanExists = nTimeExists - nTimeGetTransaction;
+
         //transaction is in levelDB, so we can attempt to parse it
         int parseRC = ParseTransaction(wtx, blockHeight, 0, mp_obj);
+
+        nTimeParseTransaction = GetTimeMicros();
+        nSpanParseTransaction = nTimeParseTransaction - nTimeExists;
+
         if (0 <= parseRC) //negative RC means no MP content/badly encoded TX, we shouldn't see this if TX in levelDB but check for sanity
         {
             // do we have a non-zero RC, if so it's a payment, handle differently
@@ -1263,7 +1288,13 @@ int populateRPCTransactionObject(const uint256& txid, Object *txobj, std::string
                     int tmpblock=0;
                     uint32_t tmptype=0;
                     uint64_t amountNew=0;
+
+                    int64_t nTime = GetTimeMicros();
+
                     valid=getValidMPTX(wtxid, &tmpblock, &tmptype, &amountNew);
+
+                    nSpanGetValid = GetTimeMicros() - nTime;
+
                     //populate based on type of tx
                     switch (MPTxTypeInt)
                     {
@@ -1360,7 +1391,11 @@ int populateRPCTransactionObject(const uint256& txid, Object *txobj, std::string
                                 amount = mp_obj.getAmount();
                                 showReference = true;
                                 //check crowdsale invest?
+
+                                int64_t nTime = GetTimeMicros();
                                 crowdPurchase = isCrowdsalePurchase(wtxid, refAddress, &crowdPropertyId, &crowdTokens, &issuerTokens);
+                                nSpanGetCrowd = GetTimeMicros() - nTime;
+
                                 if (crowdPurchase)
                                 {
                                     MPTxType = "Crowdsale Purchase";
@@ -1421,6 +1456,10 @@ int populateRPCTransactionObject(const uint256& txid, Object *txobj, std::string
                     return -3336; // "Not a Master Protocol transaction"
                 }
             } // end payment check if
+
+        nTimeRest = GetTimeMicros();
+        nSpanRest = nTimeRest - nTimeParseTransaction;
+
         } //negative RC check
         else
         {
@@ -1431,6 +1470,8 @@ int populateRPCTransactionObject(const uint256& txid, Object *txobj, std::string
     {
         return MP_TX_IS_NOT_MASTER_PROTOCOL;
     }
+
+    nTimeJson = GetTimeMicros();
 
     if (isMPTx)
     {
@@ -1512,6 +1553,19 @@ int populateRPCTransactionObject(const uint256& txid, Object *txobj, std::string
         }
         txobj->push_back(Pair("valid", valid));
     }
+
+    nSpanJson = GetTimeMicros() - nTimeJson;
+
+    PrintToConsole("%s(): gettx: %.3f ms, exists: %.3f ms, parsetx: %.3f ms, isvalid:  %.3f ms, iscrowd:  %.3f ms, rest: %.3f ms, json: %.3f ms\n",
+            __func__,
+            0.001 * nSpanGetTransaction,
+            0.001 * nSpanExists,
+            0.001 * nSpanParseTransaction,
+            0.001 * nSpanGetValid,
+            0.001 * nSpanGetCrowd,
+            0.001 * nSpanRest,
+            0.001 * nSpanJson);
+
     return 0;
 }
 
@@ -1581,6 +1635,10 @@ Value gettransaction_MP(const Array& params, bool fHelp)
     return txobj;
 }
 
+static int64_t nListTransactionsTime = 0;
+static int64_t nListTransactionsCalls = 0;
+CCriticalSection cs_list_transactions;
+
 Value listtransactions_MP(const Array& params, bool fHelp)
 {
     // note this call has been refactored to use the singular populateRPCTransactionObject function
@@ -1593,6 +1651,8 @@ Value listtransactions_MP(const Array& params, bool fHelp)
             + HelpExampleCli("listtransactions_MP", "")
             + HelpExampleRpc("listtransactions_MP", "")
         );
+
+    int64_t nTimeStart = GetTimeMicros();
 
     CWallet *wallet = pwalletMain;
     string sAddress = "";
@@ -1633,6 +1693,11 @@ Value listtransactions_MP(const Array& params, bool fHelp)
     boost::split(vecReceipts, mySTOReceipts, boost::is_any_of(","), token_compress_on);
     int64_t lastTXBlock = 999999;
 
+    int nTxsSeen = 0;
+    int nStoRuns = 0;
+    int nPopulateRuns = 0;
+    int64_t nPopulateTime = 0;
+
     // rewrite to use original listtransactions methodology from core
     LOCK(wallet->cs_wallet);
     std::list<CAccountingEntry> acentries;
@@ -1641,6 +1706,7 @@ Value listtransactions_MP(const Array& params, bool fHelp)
     // iterate backwards until we have nCount items to return:
     for (CWallet::TxItems::reverse_iterator it = txOrdered.rbegin(); it != txOrdered.rend(); ++it)
     {
+        ++nTxsSeen;
         CWalletTx *const pwtx = (*it).second.first;
         if (pwtx != 0)
         {
@@ -1655,6 +1721,8 @@ Value listtransactions_MP(const Array& params, bool fHelp)
             // look for an STO receipt to see if we need to insert it
             for(uint32_t i = 0; i<vecReceipts.size(); i++)
             {
+                ++nStoRuns;
+
                 std::vector<std::string> svstr;
                 boost::split(svstr, vecReceipts[i], boost::is_any_of(":"), token_compress_on);
                 if(4 == svstr.size()) // make sure expected num items
@@ -1666,7 +1734,13 @@ Value listtransactions_MP(const Array& params, bool fHelp)
                         hash.SetHex(svstr[0]);
                         Object txobj;
                         int populateResult = -1;
+
+                        int64_t nTime1 = GetTimeMicros();
                         populateResult = populateRPCTransactionObject(hash, &txobj);
+                        int64_t nTime2 = GetTimeMicros();
+                        nPopulateTime += (nTime2 - nTime1);
+                        ++nPopulateRuns;
+
                         if (0 == populateResult)
                         {
                             Array receiveArray;
@@ -1692,11 +1766,19 @@ Value listtransactions_MP(const Array& params, bool fHelp)
             int populateResult = -1;
             if (addressFilter)
             {
+                int64_t nTime1 = GetTimeMicros();
                 populateResult = populateRPCTransactionObject(hash, &txobj, addressParam); // pass in an address filter
+                int64_t nTime2 = GetTimeMicros();
+                nPopulateTime += (nTime2 - nTime1);
+                ++nPopulateRuns;
             }
             else
             {
+                int64_t nTime1 = GetTimeMicros();
                 populateResult = populateRPCTransactionObject(hash, &txobj); // no address filter
+                int64_t nTime2 = GetTimeMicros();
+                nPopulateTime += (nTime2 - nTime1);
+                ++nPopulateRuns;
             }
             if (0 == populateResult) response.push_back(txobj); // add the transaction object to the response array if we get a 0 rc
             lastTXBlock = blockHeight;
@@ -1719,6 +1801,23 @@ Value listtransactions_MP(const Array& params, bool fHelp)
     if (first != response.begin()) response.erase(response.begin(), first);
 
     std::reverse(response.begin(), response.end()); // return oldest to newest?
+
+    int64_t nTime = GetTimeMicros() - nTimeStart;
+    int64_t nCallNum;
+    int64_t nTotal;
+
+    {
+        LOCK(cs_list_transactions);
+        ++nListTransactionsCalls;
+        nListTransactionsTime += nTime;
+
+        nCallNum = nListTransactionsCalls;
+        nTotal = nListTransactionsTime;
+    }
+
+    PrintToConsole("%s(): %.3f ms, %d txs seen, %d sto runs, %d populate runs, %.3f ms populated, %.3f ms/run\n",
+            __func__, 0.001 * nTime, nTxsSeen, nStoRuns, nPopulateRuns, 0.001 * nPopulateTime, 0.001 * nPopulateTime /  nPopulateRuns);
+
     return response;   // return response array for JSON serialization
 }
 
