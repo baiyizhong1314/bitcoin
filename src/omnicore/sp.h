@@ -97,8 +97,6 @@ public:
 
         Entry();
 
-        json_spirit::Object toJSON() const;
-        void fromJSON(const json_spirit::Object& json);
         bool isDivisible() const;
         void print() const;
     };

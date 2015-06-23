@@ -6,7 +6,10 @@
 #include "omnicore/omnicore.h"
 
 #include "base58.h"
+#include "clientversion.h"
 #include "main.h"
+#include "serialize.h"
+#include "streams.h"
 #include "tinyformat.h"
 #include "uint256.h"
 #include "utiltime.h"
@@ -41,129 +44,6 @@ CMPSPInfo::Entry::Entry()
     close_early(false), max_tokens(false), missedTokens(0), timeclosed(0),
     fixed(false), manual(false)
 {
-}
-
-Object CMPSPInfo::Entry::toJSON() const
-{
-    Object spInfo;
-    spInfo.push_back(Pair("issuer", issuer));
-    spInfo.push_back(Pair("prop_type", prop_type));
-    spInfo.push_back(Pair("prev_prop_id", (uint64_t) prev_prop_id));
-    spInfo.push_back(Pair("category", category));
-    spInfo.push_back(Pair("subcategory", subcategory));
-    spInfo.push_back(Pair("name", name));
-    spInfo.push_back(Pair("url", url));
-    spInfo.push_back(Pair("data", data));
-    spInfo.push_back(Pair("fixed", fixed));
-    spInfo.push_back(Pair("manual", manual));
-
-    spInfo.push_back(Pair("num_tokens", strprintf("%d", num_tokens)));
-    if (false == fixed && false == manual) {
-        spInfo.push_back(Pair("property_desired", (uint64_t) property_desired));
-        spInfo.push_back(Pair("deadline", strprintf("%d", deadline)));
-        spInfo.push_back(Pair("early_bird", (int) early_bird));
-        spInfo.push_back(Pair("percentage", (int) percentage));
-
-        spInfo.push_back(Pair("close_early", (int) close_early));
-        spInfo.push_back(Pair("max_tokens", (int) max_tokens));
-        spInfo.push_back(Pair("missedTokens", missedTokens));
-        spInfo.push_back(Pair("timeclosed", strprintf("%d", timeclosed)));
-        spInfo.push_back(Pair("txid_close", txid_close.ToString()));
-    }
-
-    // Initialize values
-    std::map<std::string, std::vector<uint64_t> >::const_iterator it;
-
-    std::string values_long;
-    std::string values;
-
-    // Iterate through fundraiser data, serializing it with txid:val:val:val:val;
-    bool crowdsale = !fixed && !manual;
-    for (it = historicalData.begin(); it != historicalData.end(); it++) {
-        values += it->first;
-        if (crowdsale) {
-            values += ":" + boost::lexical_cast<std::string>(it->second.at(0));
-            values += ":" + boost::lexical_cast<std::string>(it->second.at(1));
-            values += ":" + boost::lexical_cast<std::string>(it->second.at(2));
-            values += ":" + boost::lexical_cast<std::string>(it->second.at(3));
-        } else if (manual) {
-            values += ":" + boost::lexical_cast<std::string>(it->second.at(0));
-            values += ":" + boost::lexical_cast<std::string>(it->second.at(1));
-        }
-        values += ";";
-        values_long += values;
-    }
-
-    spInfo.push_back(Pair("historicalData", values_long));
-    spInfo.push_back(Pair("txid", txid.ToString()));
-    spInfo.push_back(Pair("creation_block", creation_block.ToString()));
-    spInfo.push_back(Pair("update_block", update_block.ToString()));
-
-    return spInfo;
-}
-
-void CMPSPInfo::Entry::fromJSON(const Object& json)
-{
-    unsigned int idx = 0;
-    issuer = json[idx++].value_.get_str();
-    prop_type = (unsigned short)json[idx++].value_.get_int();
-    prev_prop_id = (unsigned int)json[idx++].value_.get_uint64();
-    category = json[idx++].value_.get_str();
-    subcategory = json[idx++].value_.get_str();
-    name = json[idx++].value_.get_str();
-    url = json[idx++].value_.get_str();
-    data = json[idx++].value_.get_str();
-    fixed = json[idx++].value_.get_bool();
-    manual = json[idx++].value_.get_bool();
-
-    num_tokens = boost::lexical_cast<uint64_t>(json[idx++].value_.get_str());
-    if (false == fixed && false == manual) {
-        property_desired = (unsigned int)json[idx++].value_.get_uint64();
-        deadline = boost::lexical_cast<uint64_t>(json[idx++].value_.get_str());
-        early_bird = (unsigned char)json[idx++].value_.get_int();
-        percentage = (unsigned char)json[idx++].value_.get_int();
-
-        close_early = (unsigned char)json[idx++].value_.get_int();
-        max_tokens = (unsigned char)json[idx++].value_.get_int();
-        missedTokens = (unsigned char)json[idx++].value_.get_int();
-        timeclosed = boost::lexical_cast<uint64_t>(json[idx++].value_.get_str());
-        txid_close = uint256(json[idx++].value_.get_str());
-    }
-
-    // Reconstruct database
-    std::string longstr = json[idx++].value_.get_str();
-    std::vector<std::string> strngs_vec;
-
-    // Split serialized form up
-    boost::split(strngs_vec, longstr, boost::is_any_of(";"));
-
-    // Go through and deserialize the database
-    bool crowdsale = !fixed && !manual;
-    for (std::vector<std::string>::size_type i = 0; i != strngs_vec.size(); i++) {
-        if (strngs_vec[i].empty()) {
-            continue;
-        }
-
-        std::vector<std::string> str_split_vec;
-        boost::split(str_split_vec, strngs_vec[i], boost::is_any_of(":"));
-
-        std::vector<uint64_t> txDataVec;
-
-        if (crowdsale && str_split_vec.size() == 5) {
-            txDataVec.push_back(boost::lexical_cast<uint64_t>(str_split_vec.at(1)));
-            txDataVec.push_back(boost::lexical_cast<uint64_t>(str_split_vec.at(2)));
-            txDataVec.push_back(boost::lexical_cast<uint64_t>(str_split_vec.at(3)));
-            txDataVec.push_back(boost::lexical_cast<uint64_t>(str_split_vec.at(4)));
-        } else if (manual && str_split_vec.size() == 3) {
-            txDataVec.push_back(boost::lexical_cast<uint64_t>(str_split_vec.at(1)));
-            txDataVec.push_back(boost::lexical_cast<uint64_t>(str_split_vec.at(2)));
-        }
-
-        historicalData.insert(std::make_pair(str_split_vec.at(0), txDataVec));
-    }
-    txid = uint256(json[idx++].value_.get_str());
-    creation_block = uint256(json[idx++].value_.get_str());
-    update_block = uint256(json[idx++].value_.get_str());
 }
 
 bool CMPSPInfo::Entry::isDivisible() const
@@ -251,11 +131,15 @@ unsigned int CMPSPInfo::updateSP(unsigned int propertyID, const Entry& info)
     }
 
     unsigned int res = propertyID;
-    Object spInfo = info.toJSON();
 
     // generate the SP id
     std::string spKey = strprintf(FORMAT_BOOST_SPKEY, propertyID);
-    std::string spValue = json_spirit::write_string(Value(spInfo), false);
+
+    CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+    ssValue.reserve(ssValue.GetSerializeSize(info));
+    ssValue << info;
+    leveldb::Slice spValue(&ssValue[0], ssValue.size());
+
     std::string spPrevKey = strprintf("blk-%s:sp-%d", info.update_block.ToString(), propertyID);
     std::string spPrevValue;
 
@@ -286,20 +170,22 @@ unsigned int CMPSPInfo::putSP(unsigned char ecosystem, const Entry& info)
             res = 0;
     }
 
-    Object spInfo = info.toJSON();
-
     // generate the SP id
     std::string spKey = strprintf(FORMAT_BOOST_SPKEY, res);
-    std::string spValue = json_spirit::write_string(Value(spInfo), false);
+    CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+    ssValue.reserve(ssValue.GetSerializeSize(info));
+    ssValue << info;
+    leveldb::Slice spValue(&ssValue[0], ssValue.size());
+
     std::string txIndexKey = strprintf(FORMAT_BOOST_TXINDEXKEY, info.txid.ToString());
     std::string txValue = strprintf("%d", res);
 
     // sanity checking
     std::string existingEntry;
-    if (false == pdb->Get(readoptions, spKey, &existingEntry).IsNotFound() && false == boost::equals(spValue, existingEntry)) {
-        PrintToLog("%s WRITING SP %d TO LEVELDB WHEN A DIFFERENT SP ALREADY EXISTS FOR THAT ID!!!\n", __FUNCTION__, res);
+    if (false == pdb->Get(readoptions, spKey, &existingEntry).IsNotFound() && false == boost::equals(spValue.ToString(), existingEntry)) {
+        PrintToConsole("%s WRITING SP %d TO LEVELDB WHEN A DIFFERENT SP ALREADY EXISTS FOR THAT ID!!!\n", __FUNCTION__, res);
     } else if (false == pdb->Get(readoptions, txIndexKey, &existingEntry).IsNotFound() && false == boost::equals(txValue, existingEntry)) {
-        PrintToLog("%s WRITING INDEX TXID %s : SP %d IS OVERWRITING A DIFFERENT VALUE!!!\n", __FUNCTION__, info.txid.ToString(), res);
+        PrintToConsole("%s WRITING INDEX TXID %s : SP %d IS OVERWRITING A DIFFERENT VALUE!!!\n", __FUNCTION__, info.txid.ToString(), res);
     }
 
     // atomically write both the the SP and the index to the database
@@ -333,30 +219,23 @@ bool CMPSPInfo::getSP(unsigned int spid, Entry& info) const
     int64_t nTimeGet = GetTimeMicros();
     int64_t nSpanGet = nTimeGet - nTimeStart;
 
-    // parse the encoded json, failing if it doesnt parse or is an object
-    Value spInfoVal;
-    if (false == json_spirit::read_string(spInfoStr, spInfoVal) || spInfoVal.type() != json_spirit::obj_type) {
-        return false;
+    try {
+        CDataStream ssValue(spInfoStr.data(), spInfoStr.data() + spInfoStr.size(), SER_DISK, CLIENT_VERSION);
+        ssValue >> info;
+    } catch (const std::exception& e) {
+        PrintToConsole("%s(): ERROR: %s\n", __func__, e.what());
     }
 
-    int64_t nTimeRead = GetTimeMicros();
-    int64_t nSpanRead = nTimeRead - nTimeGet;
-
-    // transfer to the Entry structure
-    Object& spInfo = spInfoVal.get_obj();
-    info.fromJSON(spInfo);
-
     int64_t nTimeParse = GetTimeMicros();
-    int64_t nSpanParse = nTimeParse - nTimeRead;
+    int64_t nSpanParse = nTimeParse - nTimeGet;
 
     int64_t nSpanTotal = nTimeParse - nTimeStart;
 
-    PrintToConsole("%s(): %.3f ms total, get sp %d: %.3f ms, read: %.3f ms, parse: %.3f ms\n",
+    PrintToConsole("%s(): %.3f ms total, get sp %d: %.3f ms, parse: %.3f ms\n",
             __func__,
             0.001 * nSpanTotal,
             spid,
             0.001 * nSpanGet,
-            0.001 * nSpanRead,
             0.001 * nSpanParse);
 
     return true;
@@ -401,10 +280,17 @@ int CMPSPInfo::popBlock(const uint256& block_hash)
     leveldb::Iterator* iter = NewIterator();
     for (iter->Seek("sp-"); iter->Valid() && iter->key().starts_with("sp-"); iter->Next()) {
         // parse the encoded json, failing if it doesnt parse or is an object
-        Value spInfoVal;
-        if (json_spirit::read_string(iter->value().ToString(), spInfoVal) && spInfoVal.type() == json_spirit::obj_type) {
-            Entry info;
-            info.fromJSON(spInfoVal.get_obj());
+        std::string spInfoVal = iter->value().ToString();
+        Entry info;
+        bool fSuccess = false;
+        try {
+            CDataStream ssValue(spInfoVal.data(), spInfoVal.data() + spInfoVal.size(), SER_DISK, CLIENT_VERSION);
+            ssValue >> info;
+            fSuccess = true;
+        } catch (const std::exception& e) {
+            PrintToConsole("%s(): ERROR: %s\n", __func__, e.what());
+        }
+        if (fSuccess) {
             if (info.update_block == block_hash) {
                 // need to roll this SP back
                 if (info.update_block == info.creation_block) {
@@ -494,10 +380,18 @@ void CMPSPInfo::printAll() const
             PrintToConsole("%10s => ", vstr[1]);
 
             // parse the encoded json, failing if it doesnt parse or is an object
-            Value spInfoVal;
-            if (json_spirit::read_string(iter->value().ToString(), spInfoVal) && spInfoVal.type() == json_spirit::obj_type) {
-                Entry info;
-                info.fromJSON(spInfoVal.get_obj());
+            std::string spInfoVal = iter->value().ToString();
+            Entry info;
+            bool fSuccess = false;
+            try {
+                CDataStream ssValue(spInfoVal.data(), spInfoVal.data() + spInfoVal.size(), SER_DISK, CLIENT_VERSION);
+                ssValue >> info;
+                fSuccess = true;
+            } catch (const std::exception& e) {
+                PrintToConsole("%s(): ERROR: %s\n", __func__, e.what());
+            }
+
+            if (fSuccess) {
                 info.print();
             } else {
                 PrintToConsole("<Malformed JSON in DB>\n");
