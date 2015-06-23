@@ -24,6 +24,7 @@
 #include "primitives/block.h"
 #include "primitives/transaction.h"
 #include "rpcserver.h"
+#include "serialize.h"
 #include "tinyformat.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
@@ -34,7 +35,9 @@
 #include <boost/exception/to_string.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include "json/json_spirit_reader_template.h"
 #include "json/json_spirit_value.h"
+#include "json/json_spirit_writer_template.h"
 
 #include <stdint.h>
 
@@ -246,6 +249,58 @@ int extra2 = 0, extra3 = 0;
       s_stolistdb->printAll();
       s_stolistdb->printStats();
       break;
+
+    case 9:
+    {
+        int64_t nTime = GetTimeMicros();
+
+        // 1. getSP
+
+        CMPSPInfo::Entry value;
+        if (!_my_sps->getSP(extra2, value)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Property identifier does not exist");
+        }
+        int64_t nTime1 = GetTimeMicros();
+
+        // 2. SP -> bytes
+
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue.reserve(ssValue.GetSerializeSize(value));
+        ssValue << value;
+
+        int64_t nTime2 = GetTimeMicros();
+
+        // 3. bytes -> SP
+
+        CMPSPInfo::Entry entry2;
+        ssValue >> entry2;
+
+        int64_t nTime3 = GetTimeMicros();
+
+        // 4. SP -> JSON -> string
+
+        Object object = entry2.toJSON();
+        std::string strObj = json_spirit::write_string(Value(object), false);
+
+        int64_t nTime4 = GetTimeMicros();
+
+        // 5. string -> JSON -> SP
+
+        Value objOut;
+        json_spirit::read_string(strObj, objOut);
+        CMPSPInfo::Entry entry3;
+        entry3.fromJSON(object);
+
+        int64_t nTime5 = GetTimeMicros();
+
+        PrintToConsole("getSP:                 %.3f ms\n", 0.001 * (nTime1 - nTime));
+        PrintToConsole("entry -> bytes:        %.3f ms\n", 0.001 * (nTime2 - nTime1));
+        PrintToConsole("bytes -> entry:        %.3f ms\n", 0.001 * (nTime3 - nTime2));
+        PrintToConsole("entry -> json -> str:  %.3f ms\n", 0.001 * (nTime4 - nTime3));
+        PrintToConsole("str -> json -> entry:  %.3f ms\n", 0.001 * (nTime5 - nTime4));
+
+        return entry3.toJSON();
+    }
   }
   return GetHeight();
 }

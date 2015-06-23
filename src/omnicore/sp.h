@@ -8,6 +8,8 @@
 class CBlockIndex;
 class uint256;
 
+#include "streams.h"
+
 #include <boost/filesystem.hpp>
 
 #include <openssl/sha.h>
@@ -28,6 +30,36 @@ class CMPSPInfo : public CDBBase
 {
 public:
     struct Entry {
+        ADD_SERIALIZE_METHODS;
+
+        template <typename Stream, typename Operation>
+        inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+            READWRITE(issuer);
+            READWRITE(prop_type);
+            READWRITE(prev_prop_id);
+            READWRITE(category);
+            READWRITE(subcategory);
+            READWRITE(name);
+            READWRITE(url);
+            READWRITE(data);
+            READWRITE(num_tokens);
+            READWRITE(property_desired);
+            READWRITE(deadline);
+            READWRITE(early_bird);
+            READWRITE(percentage);
+            READWRITE(close_early);
+            READWRITE(max_tokens);
+            READWRITE(missedTokens);
+            READWRITE(timeclosed);
+            READWRITE(txid_close);
+            READWRITE(txid);
+            READWRITE(creation_block);
+            READWRITE(update_block);
+            READWRITE(fixed);
+            READWRITE(manual);
+            READWRITE(historicalData);
+        }
+
         // common SP data
         std::string issuer;
         unsigned short prop_type;
