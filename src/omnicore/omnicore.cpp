@@ -460,32 +460,46 @@ static void calculateFundraiser(int64_t amtTransfer, uint8_t bonusPerc,
         int64_t fundraiserSecs, int64_t currentSecs, int64_t numProps, uint8_t issuerPerc, int64_t totalTokens,
         std::pair<int64_t, int64_t>& tokens, bool& close_crowdsale)
 {
+    PrintToLog("%s(): amtTransfer = %s\n", __func__, boost::lexical_cast<std::string>(amtTransfer));
+    PrintToLog("%s(): bonusPerc = %s\n", __func__, boost::lexical_cast<std::string>(bonusPerc));
+    PrintToLog("%s(): fundraiserSecs = %s\n", __func__, boost::lexical_cast<std::string>(fundraiserSecs));
+    PrintToLog("%s(): currentSecs = %s\n", __func__, boost::lexical_cast<std::string>(currentSecs));
+    PrintToLog("%s(): numProps = %s\n", __func__, boost::lexical_cast<std::string>(numProps));
+
     // Weeks in seconds
     int128_t weeks_sec_ = 604800L;
+    PrintToLog("%s(): weeks_sec_ = %s\n", __func__, boost::lexical_cast<std::string>(weeks_sec_));
 
     // Precision for all non-bitcoin values (bonus percentages, for example)
     int128_t precision_ = 1000000000000L;
+    PrintToLog("%s(): precision_ = %s\n", __func__, boost::lexical_cast<std::string>(precision_));
 
     // Precision for all percentages (10/100 = 10%)
     int128_t percentage_precision = 100L;
+    PrintToLog("%s(): percentage_precision = %s\n", __func__, boost::lexical_cast<std::string>(percentage_precision));
 
     // Calculate the bonus seconds
     int128_t bonusSeconds_ = fundraiserSecs - currentSecs;
+    PrintToLog("%s(): bonusSeconds_ = %s\n", __func__, boost::lexical_cast<std::string>(bonusSeconds_));
 
     // Calculate the whole number of weeks to apply bonus
     int128_t weeks_ = (bonusSeconds_ / weeks_sec_) * precision_ + ((bonusSeconds_ % weeks_sec_) * precision_) / weeks_sec_;
+    PrintToLog("%s(): weeks_ = %s\n", __func__, boost::lexical_cast<std::string>(weeks_));
 
     // Calculate the earlybird percentage to be applied
     int128_t ebPercentage_ = weeks_ * bonusPerc;
+    PrintToLog("%s(): ebPercentage_ = %s\n", __func__, boost::lexical_cast<std::string>(ebPercentage_));
 
     // Calcluate the bonus percentage to apply up to percentage_precision number of digits
     int128_t bonusPercentage_ = (ebPercentage_ + (precision_ * percentage_precision)) / percentage_precision;
+    PrintToLog("%s(): bonusPercentage_ = %s\n", __func__, boost::lexical_cast<std::string>(bonusPercentage_));
 
     // Calculate the bonus percentage for the issuer
     int128_t issuerPercentage_ = int128_t(issuerPerc) * precision_ / percentage_precision;
 
     // Precision for bitcoin amounts (satoshi)
     int128_t satoshi_precision_ = 100000000;
+    PrintToLog("%s(): satoshi_precision_ = %s\n", __func__, boost::lexical_cast<std::string>(satoshi_precision_));
 
     // Total tokens including remainders
     cpp_int createdTokens = cpp_int(amtTransfer) * cpp_int(numProps) * cpp_int(bonusPercentage_);
@@ -494,6 +508,9 @@ static void calculateFundraiser(int64_t amtTransfer, uint8_t bonusPerc,
     cpp_int createdTokens_int = createdTokens / (precision_ * satoshi_precision_);
     cpp_int issuerTokens_int = issuerTokens / (precision_ * satoshi_precision_ * 100);
     cpp_int newTotalCreated = totalTokens + createdTokens_int + issuerTokens_int;
+
+    PrintToLog("%s(): createdTokens = %s\n", __func__, boost::lexical_cast<std::string>(createdTokens));
+    PrintToLog("%s(): createdTokens_int = %s\n", __func__, boost::lexical_cast<std::string>(createdTokens_int));
 
     if (newTotalCreated > MAX_INT_8_BYTES) {
         cpp_int maxCreatable = MAX_INT_8_BYTES - totalTokens;
@@ -4404,6 +4421,8 @@ int CMPTransaction::logicMath_SimpleSend()
                     nValue = nValue * 1e8;
                 }
 
+                PrintToLog(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+
                 // Calculate the amounts to credit for this fundraiser
                 calculateFundraiser(nValue, sp.early_bird, sp.deadline, blockTime,
                         sp.num_tokens, sp.percentage, getTotalTokens(pcrowdsale->getPropertyId()),
@@ -4416,6 +4435,9 @@ int CMPTransaction::logicMath_SimpleSend()
                 // Data to pass to txFundraiserData
                 int64_t txdata[] = {(int64_t) nValue, blockTime, tokens.first, tokens.second};
                 std::vector<int64_t> txDataVec(txdata, txdata + sizeof(txdata) / sizeof(txdata[0]));
+
+                PrintToLog("%s(): txdata[] = {%d, %d, %d, %d}\n", __func__, nValue, blockTime, tokens.first, tokens.second);
+                PrintToLog("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
                 // Insert data about crowdsale participation
                 pcrowdsale->insertDatabase(txid, txDataVec);

@@ -25,7 +25,8 @@ OMNICORE_TEST_CPP = \
   omnicore/test/strtoint64_tests.cpp \
   omnicore/test/swapbyteorder_tests.cpp \
   omnicore/test/tally_tests.cpp \
-  omnicore/test/utils_tx.cpp
+  omnicore/test/utils_tx.cpp \
+  omnicore/test/cpp_int_tests.cpp
 
 BITCOIN_TESTS += \
   $(OMNICORE_TEST_CPP) \
