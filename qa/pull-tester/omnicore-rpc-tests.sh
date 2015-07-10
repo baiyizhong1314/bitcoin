@@ -16,12 +16,22 @@ touch "$DATADIR/regtest/omnicore.log"
 cd $TESTDIR
 echo "Omni Core RPC test dir: "$TESTDIR
 echo "Last OmniJ commit: "$(git log -n 1 --format="%H Author: %cn <%ce>")
-$REAL_BITCOIND -regtest -txindex -server -daemon -rpcuser=bitcoinrpc -rpcpassword=pass -debug=1 -omnidebug=all -omnialertallowsender=any -discover=0 -listen=0 -datadir="$DATADIR"
-$REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait getinfo
-$REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait getinfo_MP
+if [ "x${EXEEXT}" = "x.exe" ]; then
+  wine $REAL_BITCOIND -regtest -txindex -server -daemon -rpcuser=bitcoinrpc -rpcpassword=pass -debug=1 -omnidebug=all -omnialertallowsender=any -discover=0 -listen=0 -datadir="$DATADIR"
+  wine $REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait getinfo
+  wine $REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait getinfo_MP
+else
+  $REAL_BITCOIND -regtest -txindex -server -daemon -rpcuser=bitcoinrpc -rpcpassword=pass -debug=1 -omnidebug=all -omnialertallowsender=any -discover=0 -listen=0 -datadir="$DATADIR"
+  $REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait getinfo
+  $REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait getinfo_MP
+fi
 ./gradlew --console plain :omnij-rpc:regTest
 STATUS=$?
-$REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait stop
+if [ "x${EXEEXT}" = "x.exe" ]; then
+  wine $REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait stop
+else
+  $REAL_BITCOINCLI -regtest -rpcuser=bitcoinrpc -rpcpassword=pass -rpcwait stop
+fi
 
 # If $STATUS is not 0, the test failed.
 if [ $STATUS -ne 0 ]; then tail -n 200 $DATADIR/regtest/omnicore.log; fi
