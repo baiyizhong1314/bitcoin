@@ -1886,44 +1886,17 @@ static void ReportScanProgress(unsigned int nFirst, unsigned int nCurrent, unsig
     uiInterface.InitMessage(strProgress);
 }
 
-
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
-#include <boost/signals2/signal.hpp>
-
-class CBlockFetcher
-{
-public:
-    CBlockFetcher(int block_first, int block_last)
-      : m_block_first(block_first), m_block_last(block_last)
-    {
-    }
-
-    bool run()
-    {
-        CBlockIndex* pindex = chainActive[m_block_first];
-        while (pindex != NULL && pindex->nHeight <= m_block_last) {
-            CBlock block;
-            if (!ReadBlockFromDisk(blockCurrent, pindexCurrent)) {
-                PrintToConsole("%s(): ERROR: failed to load block %d from disk\n", __func__, pindex->nHeight);
-                return false;
-            }
-            NotifyBlockAvailable(block);
-            pindex = chainActive.Next(pindex);
-        }
-        return true;
-    }
-
-    boost::signals2::signal<void (const CBlock& block)> NotifyBlockAvailable;
-
-private:
-    int m_block_first;
-    int m_block_last;
-};
-
+CCriticalSection cs_block_cache;
+/*
 static std::map<int, CBlock> blockCache;
 
 // TRY MESSAGE QUEUE
+
+static void PopulateBlockCache()
+{
+    static unsigned int nBlockCacheSize = GetArg("-blockcachesize", 500);
+    
+}
 
 static bool ReadNextBlock(CBlock& block, CBlockIndex* pindex)
 {
@@ -1931,11 +1904,8 @@ static bool ReadNextBlock(CBlock& block, CBlockIndex* pindex)
     static unsigned int nBlockCacheSize = GetArg("-blockcachesize", 5000);
     bool fSuccess = false;
 
-    // Populated cache
     if (blockCache.find(pindex->nHeight) == blockCache.end()) {
-        // int64_t nTimeCacheStart = GetTimeMillis();
         std::map<int, CBlock>().swap(blockCache);
-        // PrintToConsole("%s(): clearing block cache at index %d..", __func__, pindex->nHeight);
 
         CBlockIndex* pindexCurrent = pindex;
         unsigned int nCount = nBlockCacheSize;
@@ -1948,10 +1918,11 @@ static bool ReadNextBlock(CBlock& block, CBlockIndex* pindex)
             }
 
             blockCache.insert(std::make_pair(pindexCurrent->nHeight, blockCurrent));
-            pindexCurrent = chainActive.Next(pindexCurrent);
+            {
+                LOCK(cs_main);
+                pindexCurrent = chainActive.Next(pindexCurrent);
+            }
         }
-        // int64_t nTimeCache = GetTimeMillis() - nTimeCacheStart;
-        // PrintToConsole(" took %.3f s for %d blocks\n", 0.001 * nTimeCache, nBlockCacheSize - nCount - 1);
     }
 
     std::map<int, CBlock>::iterator it = blockCache.find(pindex->nHeight);
@@ -1962,6 +1933,45 @@ static bool ReadNextBlock(CBlock& block, CBlockIndex* pindex)
 
     return fSuccess;
 }
+*/
+std::deque<CBlock> blockQueue;
+
+static void FillBlockQueue(int nFirstBlock, int nLastBlock)
+{
+    int nBlock = nFirstBlock;
+
+    CBlockIndex* pblockindex;
+    {
+        LOCK(cs_main);
+        pblockindex = chainActive[nBlock];
+    }
+
+    while (pblockindex != NULL && nBlock <= nLastBlock)
+    {
+        CBlock block;
+
+        if (!ReadBlockFromDisk(block, pblockindex)) {
+            PrintToConsole("%s(): ERROR: failed to load block %d from disk\n", __func__, nBlock);
+            break;
+        }
+
+        {
+            LOCK(cs_block_cache);
+            blockQueue.push_back(block);
+        }
+
+        //PrintToConsole("%s(): pushed block %d\n", __func__, nBlock);
+
+        ++nBlock;
+        {
+            LOCK(cs_main);
+            pblockindex = chainActive.Next(pblockindex);
+        }
+    }
+}
+
+#include <boost/bind.hpp>
+#include <boost/thread.hpp>
 
 /**
  * Scans the blockchain for meta transactions.
@@ -1997,39 +2007,76 @@ static int msc_initial_scan(int nFirstBlock)
     unsigned int nStartTxs = chainActive[nFirstBlock]->nChainTx;
     unsigned int nChainTxs = chainActive[nLastBlock]->nChainTx;
 
-    for (nBlock = nFirstBlock; nBlock <= nLastBlock; ++nBlock)
+    boost::thread_group threadGroup;
+    threadGroup.create_thread(boost::bind(&FillBlockQueue, nFirstBlock, nLastBlock));
+
+    bool fStop = false;
+
+    nBlock = nFirstBlock;
+    while (nBlock <= nLastBlock && !fStop)
     {
-        if (ShutdownRequested()) {
-            PrintToLog("Shutdown requested, stop scan at block %d of %d\n", nBlock, nLastBlock);
-            break;
+        bool fEmpty = true;
+        {
+            LOCK(cs_block_cache);
+            fEmpty = blockQueue.empty();
         }
 
-        CBlockIndex* pblockindex = chainActive[nBlock];
-        if (NULL == pblockindex) break;
-        std::string strBlockHash = pblockindex->GetBlockHash().GetHex();
-        unsigned int nCurrentTxs = pblockindex->nChainTx;
+        while (!fEmpty && !fStop) {
+            CBlock block;
+            {
+                LOCK(cs_block_cache);
 
-        if (msc_debug_exo) PrintToLog("%s(%d; max=%d):%s, line %d, file: %s\n",
-            __FUNCTION__, nBlock, nLastBlock, strBlockHash, __LINE__, __FILE__);
+                block = blockQueue.front();
+                blockQueue.pop_front();
+            }
 
-        if (GetTimeMillis() >= nNow + 1 * 1000) { // = 1 seconds
-            ReportScanProgress(nStartTxs, nCurrentTxs, nChainTxs, nBlock, nLastBlock);
-            nNow = GetTimeMillis();
+            //PrintToConsole("%s(): read block %d\n", __func__, nBlock);
+
+            if (ShutdownRequested()) {
+                PrintToLog("Shutdown requested, stop scan at block %d of %d\n", nBlock, nLastBlock);
+                fStop = true;
+                break;
+            }
+
+            CBlockIndex* pblockindex;
+            {
+                LOCK(cs_main);
+                pblockindex = chainActive[nBlock];
+            }
+
+            if (NULL == pblockindex) {
+                fStop = true;
+                break;
+            }
+
+            std::string strBlockHash = pblockindex->GetBlockHash().GetHex();
+            unsigned int nCurrentTxs = pblockindex->nChainTx;
+
+            if (msc_debug_exo) PrintToLog("%s(%d; max=%d):%s, line %d, file: %s\n",
+                __FUNCTION__, nBlock, nLastBlock, strBlockHash, __LINE__, __FILE__);
+
+            if (GetTimeMillis() >= nNow + 1 * 1000) { // = 1 seconds
+                ReportScanProgress(nStartTxs, nCurrentTxs, nChainTxs, nBlock, nLastBlock);
+                nNow = GetTimeMillis();
+            }
+
+            unsigned int nTxNum = 0;
+            mastercore_handler_block_begin(nBlock, pblockindex);
+
+            BOOST_FOREACH(const CTransaction& tx, block.vtx) {
+                if (0 == mastercore_handler_tx(tx, nBlock, nTxNum, pblockindex)) nFound++;
+                ++nTxNum;
+            }
+
+            nTotal += nTxNum;
+            mastercore_handler_block_end(nBlock, pblockindex, nFound);
+
+            {
+                LOCK(cs_block_cache);
+                fEmpty = blockQueue.empty();
+            }
+            ++nBlock;
         }
-
-        CBlock block;
-        if (!ReadNextBlock(block, pblockindex)) break;
-
-        unsigned int nTxNum = 0;
-        mastercore_handler_block_begin(nBlock, pblockindex);
-
-        BOOST_FOREACH(const CTransaction& tx, block.vtx) {
-            if (0 == mastercore_handler_tx(tx, nBlock, nTxNum, pblockindex)) nFound++;
-            ++nTxNum;
-        }
-
-        nTotal += nTxNum;
-        mastercore_handler_block_end(nBlock, pblockindex, nFound);
     }
 
     if (nBlock < nLastBlock) {
