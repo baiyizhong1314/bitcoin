@@ -1887,53 +1887,7 @@ static void ReportScanProgress(unsigned int nFirst, unsigned int nCurrent, unsig
 }
 
 CCriticalSection cs_block_cache;
-/*
-static std::map<int, CBlock> blockCache;
 
-// TRY MESSAGE QUEUE
-
-static void PopulateBlockCache()
-{
-    static unsigned int nBlockCacheSize = GetArg("-blockcachesize", 500);
-    
-}
-
-static bool ReadNextBlock(CBlock& block, CBlockIndex* pindex)
-{
-    if (pindex == NULL) return false;
-    static unsigned int nBlockCacheSize = GetArg("-blockcachesize", 5000);
-    bool fSuccess = false;
-
-    if (blockCache.find(pindex->nHeight) == blockCache.end()) {
-        std::map<int, CBlock>().swap(blockCache);
-
-        CBlockIndex* pindexCurrent = pindex;
-        unsigned int nCount = nBlockCacheSize;
-
-        while (pindexCurrent != NULL && nCount-- > 0) {
-            CBlock blockCurrent;
-            if (!ReadBlockFromDisk(blockCurrent, pindexCurrent)) {
-                PrintToConsole("%s(): ERROR: failed to load block %d from disk\n", __func__, pindexCurrent->nHeight);
-                break;
-            }
-
-            blockCache.insert(std::make_pair(pindexCurrent->nHeight, blockCurrent));
-            {
-                LOCK(cs_main);
-                pindexCurrent = chainActive.Next(pindexCurrent);
-            }
-        }
-    }
-
-    std::map<int, CBlock>::iterator it = blockCache.find(pindex->nHeight);
-    if (it != blockCache.end()) {
-        fSuccess = true;
-        block = it->second;
-    }
-
-    return fSuccess;
-}
-*/
 std::deque<CBlock> blockQueue;
 
 static void FillBlockQueue(int nFirstBlock, int nLastBlock)
@@ -1959,8 +1913,6 @@ static void FillBlockQueue(int nFirstBlock, int nLastBlock)
             LOCK(cs_block_cache);
             blockQueue.push_back(block);
         }
-
-        //PrintToConsole("%s(): pushed block %d\n", __func__, nBlock);
 
         ++nBlock;
         {
@@ -2029,8 +1981,6 @@ static int msc_initial_scan(int nFirstBlock)
                 block = blockQueue.front();
                 blockQueue.pop_front();
             }
-
-            //PrintToConsole("%s(): read block %d\n", __func__, nBlock);
 
             if (ShutdownRequested()) {
                 PrintToLog("Shutdown requested, stop scan at block %d of %d\n", nBlock, nLastBlock);
