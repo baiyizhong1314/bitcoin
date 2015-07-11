@@ -1858,14 +1858,109 @@ int ParseTransaction(const CTransaction& tx, int nBlock, unsigned int idx, CMPTr
  * @param nCurrent[in]  The current block
  * @param nLast[in]     The last block
  */
-static void ReportScanProgress(int nFirst, int nCurrent, int nLast)
+static void ReportScanProgress(unsigned int nFirst, unsigned int nCurrent, unsigned int nLast, int nCurrentBlock, int nLastBlock)
 {
+    static int64_t nStartTime = GetTimeMillis();
+
     double dProgress = 100.0 * (nCurrent - nFirst) / (nLast - nFirst);
+    int64_t nTime = GetTimeMillis() - nStartTime;
+    double nEstimated = 3600000.0;
+
+    if (dProgress > 0.0 && nTime > 0) {
+        nEstimated = 100.0 / dProgress * nTime - nTime;
+    }
+    
+    double dTimeDone = 0.001 * nTime / 60.0;
+    double dTimeTotal = 0.001 * (nEstimated + nTime) / 60.0;
+    double dTimeRemaining = 0.001 * nEstimated / 60.0;
+
     std::string strProgress = strprintf(
-            "Still scanning.. at block %d of %d. Progress: %.2f %%", nCurrent, nLast, dProgress);
+            "Still scanning.. at block %d of %d. Progress: %.2f %% [%d %d %d] [%.3f min of %.3f min total ... estimated: %.3f min total remaining]",
+            nCurrentBlock, nLastBlock, dProgress,
+            nFirst, nCurrent, nLast,
+            dTimeDone,
+            dTimeTotal,
+            dTimeRemaining);
 
     PrintToConsole(strProgress + "\n");
     uiInterface.InitMessage(strProgress);
+}
+
+
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+#include <boost/signals2/signal.hpp>
+
+class CBlockFetcher
+{
+public:
+    CBlockFetcher(int block_first, int block_last)
+      : m_block_first(block_first), m_block_last(block_last)
+    {
+    }
+
+    bool run()
+    {
+        CBlockIndex* pindex = chainActive[m_block_first];
+        while (pindex != NULL && pindex->nHeight <= m_block_last) {
+            CBlock block;
+            if (!ReadBlockFromDisk(blockCurrent, pindexCurrent)) {
+                PrintToConsole("%s(): ERROR: failed to load block %d from disk\n", __func__, pindex->nHeight);
+                return false;
+            }
+            NotifyBlockAvailable(block);
+            pindex = chainActive.Next(pindex);
+        }
+        return true;
+    }
+
+    boost::signals2::signal<void (const CBlock& block)> NotifyBlockAvailable;
+
+private:
+    int m_block_first;
+    int m_block_last;
+};
+
+static std::map<int, CBlock> blockCache;
+
+// TRY MESSAGE QUEUE
+
+static bool ReadNextBlock(CBlock& block, CBlockIndex* pindex)
+{
+    if (pindex == NULL) return false;
+    static unsigned int nBlockCacheSize = GetArg("-blockcachesize", 5000);
+    bool fSuccess = false;
+
+    // Populated cache
+    if (blockCache.find(pindex->nHeight) == blockCache.end()) {
+        // int64_t nTimeCacheStart = GetTimeMillis();
+        std::map<int, CBlock>().swap(blockCache);
+        // PrintToConsole("%s(): clearing block cache at index %d..", __func__, pindex->nHeight);
+
+        CBlockIndex* pindexCurrent = pindex;
+        unsigned int nCount = nBlockCacheSize;
+
+        while (pindexCurrent != NULL && nCount-- > 0) {
+            CBlock blockCurrent;
+            if (!ReadBlockFromDisk(blockCurrent, pindexCurrent)) {
+                PrintToConsole("%s(): ERROR: failed to load block %d from disk\n", __func__, pindexCurrent->nHeight);
+                break;
+            }
+
+            blockCache.insert(std::make_pair(pindexCurrent->nHeight, blockCurrent));
+            pindexCurrent = chainActive.Next(pindexCurrent);
+        }
+        // int64_t nTimeCache = GetTimeMillis() - nTimeCacheStart;
+        // PrintToConsole(" took %.3f s for %d blocks\n", 0.001 * nTimeCache, nBlockCacheSize - nCount - 1);
+    }
+
+    std::map<int, CBlock>::iterator it = blockCache.find(pindex->nHeight);
+    if (it != blockCache.end()) {
+        fSuccess = true;
+        block = it->second;
+    }
+
+    return fSuccess;
 }
 
 /**
@@ -1889,7 +1984,7 @@ static void ReportScanProgress(int nFirst, int nCurrent, int nLast)
  */
 static int msc_initial_scan(int nFirstBlock)
 {
-    int64_t nNow = GetTime();
+    int64_t nNow = GetTimeMillis();
     unsigned int nTotal = 0;
     unsigned int nFound = 0;
     int nBlock = 999999;
@@ -1899,6 +1994,9 @@ static int msc_initial_scan(int nFirstBlock)
     if (nFirstBlock < 0 || nLastBlock < nFirstBlock) return -1;
     PrintToConsole("Scanning for transactions in block %d to block %d..\n", nFirstBlock, nLastBlock);
 
+    unsigned int nStartTxs = chainActive[nFirstBlock]->nChainTx;
+    unsigned int nChainTxs = chainActive[nLastBlock]->nChainTx;
+
     for (nBlock = nFirstBlock; nBlock <= nLastBlock; ++nBlock)
     {
         if (ShutdownRequested()) {
@@ -1906,25 +2004,26 @@ static int msc_initial_scan(int nFirstBlock)
             break;
         }
 
-        if (GetTime() >= nNow + 30) { // seconds
-            ReportScanProgress(nFirstBlock, nBlock, nLastBlock);
-            nNow = GetTime();
-        }
-
         CBlockIndex* pblockindex = chainActive[nBlock];
         if (NULL == pblockindex) break;
         std::string strBlockHash = pblockindex->GetBlockHash().GetHex();
+        unsigned int nCurrentTxs = pblockindex->nChainTx;
 
         if (msc_debug_exo) PrintToLog("%s(%d; max=%d):%s, line %d, file: %s\n",
             __FUNCTION__, nBlock, nLastBlock, strBlockHash, __LINE__, __FILE__);
 
+        if (GetTimeMillis() >= nNow + 1 * 1000) { // = 1 seconds
+            ReportScanProgress(nStartTxs, nCurrentTxs, nChainTxs, nBlock, nLastBlock);
+            nNow = GetTimeMillis();
+        }
+
         CBlock block;
-        if (!ReadBlockFromDisk(block, pblockindex)) break;
+        if (!ReadNextBlock(block, pblockindex)) break;
 
         unsigned int nTxNum = 0;
         mastercore_handler_block_begin(nBlock, pblockindex);
 
-        BOOST_FOREACH(const CTransaction&tx, block.vtx) {
+        BOOST_FOREACH(const CTransaction& tx, block.vtx) {
             if (0 == mastercore_handler_tx(tx, nBlock, nTxNum, pblockindex)) nFound++;
             ++nTxNum;
         }

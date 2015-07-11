@@ -278,6 +278,59 @@ Value mscrpc(const Array& params, bool fHelp)
             PrintToConsole("Unlocking pwalletMain->cs_wallet now\n");
             break;
         }
+        case 12:
+        {
+            int nStart = extra2;
+            int nCount = extra3;
+
+            int64_t nBlockRead = 0;
+            int64_t nTimeStart = GetTimeMicros();
+
+            LOCK(cs_main);
+
+            PrintToConsole("Reading blocks from %d + %d\n", nStart, nCount);
+            CBlockIndex* pindex = chainActive[nStart];
+            if (NULL == pindex) {
+                PrintToConsole("Not a valid block index: %d\n", nStart);
+                break;
+            }
+
+            while (pindex != NULL && nCount-- > 0)
+            {
+                CBlock block;
+                if (!ReadBlockFromDisk(block, pindex)) {
+                    PrintToConsole("Failed to read block: %d\n", pindex->nHeight);
+                } else {
+                    ++nBlockRead;
+                    PrintToConsole("Read block: %d [vtx: %d]\n", pindex->nHeight, block.vtx.size());
+                }
+                pindex = chainActive.Next(pindex);
+            }
+
+            int64_t nTime = GetTimeMicros() - nTimeStart;
+
+            if (nBlockRead > 0) {
+                PrintToConsole("To read %d blocks, it took %.4f ms [%.4f ms/block]\n", nBlockRead, 0.001 * nTime, 0.001 * nTime / nBlockRead);
+            }
+
+            PrintToConsole("Done!");
+        }
+        case 13:
+        {
+            int nHeight = extra2;
+            PrintToConsole("Retrieving block %d\n", nHeight);
+
+            LOCK(cs_main);
+
+            CBlockIndex* pindex = chainActive[nHeight];
+            if (NULL == pindex) {
+                PrintToConsole("Not a valid block index: %d\n", nHeight);
+                break;
+            }
+
+            PrintToConsole("pindex->nChainTx:            %d\n", pindex->nChainTx);
+            PrintToConsole("chainActive.Tip()->nChainTx: %d\n", chainActive.Tip()->nChainTx);
+        }
         default:
             break;
     }
