@@ -3987,7 +3987,7 @@ int validity = 0;
   std::vector<std::string> vstr;
   boost::split(vstr, result, boost::is_any_of(":"), token_compress_on);
 
-  PrintToLog("%s() size=%lu : %s\n", __FUNCTION__, vstr.size(), result);
+  if (msc_debug_txdb) PrintToLog("%s() size=%lu : %s\n", __FUNCTION__, vstr.size(), result);
 
   if (1 <= vstr.size()) validity = atoi(vstr[0]);
 
@@ -4009,7 +4009,7 @@ int validity = 0;
     else nAmended = 0;
   }
 
-  p_txlistdb->printStats();
+  if (msc_debug_txdb) p_txlistdb->printStats();
 
   if ((int)0 == validity) return false;
 
