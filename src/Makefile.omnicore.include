@@ -18,6 +18,7 @@ OMNICORE_H = \
   omnicore/rpctxobject.h \
   omnicore/rpcvalues.h \
   omnicore/script.h \
+  omnicore/seedblocks.h \
   omnicore/sp.h \
   omnicore/sto.h \
   omnicore/tally.h \
@@ -45,6 +46,7 @@ OMNICORE_CPP = \
   omnicore/rpctxobject.cpp \
   omnicore/rpcvalues.cpp \
   omnicore/script.cpp \
+  omnicore/seedblocks.cpp \
   omnicore/sp.cpp \
   omnicore/sto.cpp \
   omnicore/tally.cpp \
