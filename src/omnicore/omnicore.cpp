@@ -1921,6 +1921,48 @@ public:
     }
 };
 
+//
+// EXPERIMENTAL CODE
+//
+
+#include <boost/bind.hpp>
+#include <boost/thread.hpp>
+
+CCriticalSection cs_block_cache;
+
+std::deque<CBlock> blockQueue;
+
+static void FillBlockQueue(int nFirstBlock, int nLastBlock)
+{
+    int nBlock = nFirstBlock;
+
+    CBlockIndex* pblockindex;
+    {
+        LOCK(cs_main);
+        pblockindex = chainActive[nBlock];
+    }
+
+    while (pblockindex != NULL && nBlock <= nLastBlock)
+    {
+        boost::this_thread::interruption_point();
+
+        CBlock block;
+        if (!ReadBlockFromDisk(block, pblockindex)) {
+            PrintToConsole("%s(): ERROR: failed to load block %d from disk\n", __func__, nBlock);
+            break;
+        }
+        {
+            LOCK(cs_block_cache);
+            blockQueue.push_back(block);
+        }
+        {
+            LOCK(cs_main);
+            pblockindex = chainActive.Next(pblockindex);
+        }
+        ++nBlock;
+    }
+}
+
 /**
  * Scans the blockchain for meta transactions.
  *
@@ -1956,39 +1998,75 @@ static int msc_initial_scan(int nFirstBlock)
     // used to print the progress to the console and notifies the UI
     ProgressReporter progressReporter(chainActive[nFirstBlock], chainActive[nLastBlock]);
 
-    for (nBlock = nFirstBlock; nBlock <= nLastBlock; ++nBlock)
+    boost::thread_group threadGroup;
+    threadGroup.create_thread(boost::bind(&FillBlockQueue, nFirstBlock, nLastBlock));
+
+    bool fStop = false;
+    nBlock = nFirstBlock;
+    while (nBlock <= nLastBlock && !fStop)
     {
-        if (ShutdownRequested()) {
-            PrintToLog("Shutdown requested, stop scan at block %d of %d\n", nBlock, nLastBlock);
-            break;
+        bool fEmpty = true;
+        {
+            LOCK(cs_block_cache);
+            fEmpty = blockQueue.empty();
         }
 
-        CBlockIndex* pblockindex = chainActive[nBlock];
-        if (NULL == pblockindex) break;
-        std::string strBlockHash = pblockindex->GetBlockHash().GetHex();
+        while (!fEmpty && !fStop)
+        {
+            if (ShutdownRequested()) {
+                PrintToLog("Shutdown requested, stop scan at block %d of %d\n", nBlock, nLastBlock);
+                fStop = true;
+                break;
+            }
 
-        if (msc_debug_exo) PrintToLog("%s(%d; max=%d):%s, line %d, file: %s\n",
-            __FUNCTION__, nBlock, nLastBlock, strBlockHash, __LINE__, __FILE__);
+            CBlockIndex* pblockindex;
+            {
+                LOCK(cs_main);
+                pblockindex = chainActive[nBlock];
+            }
 
-        if (GetTime() >= nNow + nTimeBetweenProgressReports) {
-            progressReporter.update(pblockindex);
-            nNow = GetTime();
+            if (NULL == pblockindex) {
+                fStop = true;
+                break;
+            }
+
+            CBlock block;
+            {
+                LOCK(cs_block_cache);
+                block = blockQueue.front();
+                blockQueue.pop_front();
+            }
+
+            std::string strBlockHash = pblockindex->GetBlockHash().GetHex();
+            if (msc_debug_exo) PrintToLog("%s(%d; max=%d):%s, line %d, file: %s\n",
+                __FUNCTION__, nBlock, nLastBlock, strBlockHash, __LINE__, __FILE__);
+
+            if (GetTime() >= nNow + nTimeBetweenProgressReports) {
+                progressReporter.update(pblockindex);
+                nNow = GetTime();
+            }
+
+            unsigned int nTxNum = 0;
+            mastercore_handler_block_begin(nBlock, pblockindex);
+
+            BOOST_FOREACH(const CTransaction&tx, block.vtx) {
+                if (0 == mastercore_handler_tx(tx, nBlock, nTxNum, pblockindex)) nFound++;
+                ++nTxNum;
+            }
+
+            nTotal += nTxNum;
+            mastercore_handler_block_end(nBlock, pblockindex, nFound);
+
+            {
+                LOCK(cs_block_cache);
+                fEmpty = blockQueue.empty();
+            }
+            ++nBlock;
         }
-
-        CBlock block;
-        if (!ReadBlockFromDisk(block, pblockindex)) break;
-
-        unsigned int nTxNum = 0;
-        mastercore_handler_block_begin(nBlock, pblockindex);
-
-        BOOST_FOREACH(const CTransaction&tx, block.vtx) {
-            if (0 == mastercore_handler_tx(tx, nBlock, nTxNum, pblockindex)) nFound++;
-            ++nTxNum;
-        }
-
-        nTotal += nTxNum;
-        mastercore_handler_block_end(nBlock, pblockindex, nFound);
     }
+
+    // Stop the threads, whatever happened.
+    threadGroup.interrupt_all();
 
     if (nBlock < nLastBlock) {
         PrintToConsole("Scan stopped early at block %d of block %d\n", nBlock, nLastBlock);
