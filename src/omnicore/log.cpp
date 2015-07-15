@@ -49,6 +49,8 @@ bool msc_debug_metadex2           = 0;
 bool msc_debug_metadex3           = 0;
 //! Print transaction fields, when interpreting packets
 bool msc_debug_packets            = 1;
+//! Print transaction fields, when interpreting packets (in RPC mode)
+bool msc_debug_packets_readonly   = 0;
 bool msc_debug_walletcache        = 0;
 
 /**
@@ -243,6 +245,7 @@ void InitDebugLogLevels()
         if (*it == "metadex2") msc_debug_metadex2 = true;
         if (*it == "metadex3") msc_debug_metadex3 = true;
         if (*it == "packets") msc_debug_packets = true;
+        if (*it == "packets_readonly") msc_debug_packets_readonly = true;
         if (*it == "walletcache") msc_debug_walletcache = true;
         if (*it == "none" || *it == "all") {
             bool allDebugState = false;
@@ -272,6 +275,7 @@ void InitDebugLogLevels()
             msc_debug_metadex2 = allDebugState;
             msc_debug_metadex3 = allDebugState;
             msc_debug_packets =  allDebugState;
+            msc_debug_packets_readonly =  allDebugState;
             msc_debug_walletcache = allDebugState;
         }
     }
