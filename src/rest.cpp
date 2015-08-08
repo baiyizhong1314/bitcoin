@@ -44,6 +44,9 @@ public:
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry);
 extern Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool txDetails = false);
 
+// Omni Core data retrieval
+extern int populateRPCTransactionObject(const uint256& txid, json_spirit::Object& txobj, std::string filterAddress = "", bool extendedDetails = false, std::string extendedDetailsFilter = "");
+
 static RestErr RESTERR(enum HTTPStatusCode status, string message)
 {
     RestErr re;
@@ -214,6 +217,41 @@ static bool rest_tx(AcceptedConnection* conn,
     return true; // continue to process further HTTP reqs on this cxn
 }
 
+/** REST interface for "omni_gettransaction" */
+static bool rest_omni_tx(AcceptedConnection* conn,
+                    std::string& strReq,
+                    std::map<std::string, std::string>& mapHeaders,
+                    bool fRun)
+{
+    std::vector<std::string> params;
+    enum RetFormat rf = ParseDataFormat(params, strReq);
+
+    std::string hashStr = params[0];
+    uint256 hash;
+    if (!ParseHashStr(hashStr, hash))
+        throw RESTERR(HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
+
+    Object objTx;
+    if (populateRPCTransactionObject(hash, objTx) != 0)
+        throw RESTERR(HTTP_NOT_FOUND, hashStr + " not found");
+
+    switch (rf) {
+
+    case RF_JSON: {
+        std::string strJSON = json_spirit::write_string(Value(objTx), false) + "\n";
+        conn->stream() << HTTPReply(HTTP_OK, strJSON, fRun) << std::flush;
+        return true;
+    }
+
+    default: {
+        throw RESTERR(HTTP_NOT_FOUND, "output format not found");
+    }
+    }
+
+    // not reached
+    return true; // continue to process further HTTP reqs on this cxn
+}
+
 static const struct {
     const char* prefix;
     bool (*handler)(AcceptedConnection* conn,
@@ -224,6 +262,9 @@ static const struct {
       {"/rest/tx/", rest_tx},
       {"/rest/block/notxdetails/", rest_block_notxdetails},
       {"/rest/block/", rest_block_extended},
+
+      // Omni Core data retrieval
+      {"/rest/omni/tx/", rest_omni_tx},
 };
 
 bool HTTPReq_REST(AcceptedConnection* conn,
