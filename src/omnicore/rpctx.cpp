@@ -81,7 +81,7 @@ Value omni_send(const Array& params, bool fHelp)
         if (!autoCommit) {
             return rawHex;
         } else {
-            PendingAdd(txid, fromAddress, toAddress, MSC_TYPE_SIMPLE_SEND, propertyId, amount);
+            PendingAdd(txid, fromAddress, MSC_TYPE_SIMPLE_SEND, propertyId, amount);
             return txid.GetHex();
         }
     }
@@ -170,7 +170,7 @@ Value omni_senddexsell(const Array& params, bool fHelp)
         if (!autoCommit) {
             return rawHex;
         } else {
-            PendingAdd(txid, fromAddress, "", MSC_TYPE_TRADE_OFFER, propertyIdForSale, amountForSale, 0, amountDesired, action);
+            PendingAdd(txid, fromAddress, MSC_TYPE_TRADE_OFFER, propertyIdForSale, amountForSale);
             return txid.GetHex();
         }
     }
@@ -502,7 +502,7 @@ Value omni_sendsto(const Array& params, bool fHelp)
         if (!autoCommit) {
             return rawHex;
         } else {
-            PendingAdd(txid, fromAddress, "", MSC_TYPE_SEND_TO_OWNERS, propertyId, amount);
+            PendingAdd(txid, fromAddress, MSC_TYPE_SEND_TO_OWNERS, propertyId, amount);
             return txid.GetHex();
         }
     }
@@ -786,7 +786,7 @@ Value omni_sendtrade(const Array& params, bool fHelp)
         if (!autoCommit) {
             return rawHex;
         } else {
-            PendingAdd(txid, fromAddress, "", MSC_TYPE_METADEX_TRADE, propertyIdForSale, amountForSale, propertyIdDesired, amountDesired, CMPTransaction::ADD);
+            PendingAdd(txid, fromAddress, MSC_TYPE_METADEX_TRADE, propertyIdForSale, amountForSale);
             return txid.GetHex();
         }
     }
@@ -845,7 +845,7 @@ Value omni_sendcanceltradesbyprice(const Array& params, bool fHelp)
         if (!autoCommit) {
             return rawHex;
         } else {
-            PendingAdd(txid, fromAddress, "", MSC_TYPE_METADEX_CANCEL_PRICE, propertyIdForSale, amountForSale, propertyIdDesired, amountDesired, CMPTransaction::CANCEL_AT_PRICE);
+            PendingAdd(txid, fromAddress, MSC_TYPE_METADEX_CANCEL_PRICE, propertyIdForSale, amountForSale);
             return txid.GetHex();
         }
     }
@@ -900,7 +900,7 @@ Value omni_sendcanceltradesbypair(const Array& params, bool fHelp)
         if (!autoCommit) {
             return rawHex;
         } else {
-            PendingAdd(txid, fromAddress, "", MSC_TYPE_METADEX_CANCEL_PAIR, propertyIdForSale, 0, propertyIdDesired, 0, CMPTransaction::CANCEL_ALL_FOR_PAIR);
+            PendingAdd(txid, fromAddress, MSC_TYPE_METADEX_CANCEL_PAIR, propertyIdForSale, 0);
             return txid.GetHex();
         }
     }
@@ -949,7 +949,7 @@ Value omni_sendcancelalltrades(const Array& params, bool fHelp)
         if (!autoCommit) {
             return rawHex;
         } else {
-            PendingAdd(txid, fromAddress, "", MSC_TYPE_METADEX_CANCEL_ECOSYSTEM, ecosystem, 0, ecosystem, 0, CMPTransaction::CANCEL_EVERYTHING);
+            PendingAdd(txid, fromAddress, MSC_TYPE_METADEX_CANCEL_ECOSYSTEM, ecosystem, 0);
             return txid.GetHex();
         }
     }
