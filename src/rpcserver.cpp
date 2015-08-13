@@ -47,6 +47,9 @@ static boost::asio::io_service::work *rpc_dummy_work = NULL;
 static std::vector<CSubNet> rpc_allow_subnets; //!< List of subnets to allow RPC connections from
 static std::vector< boost::shared_ptr<ip::tcp::acceptor> > rpc_acceptors;
 
+//! Sanitize non-UTF8 compliant RPC responses
+static bool fSanitizeResponse = true;
+
 void RPCTypeCheck(const Array& params,
                   const list<Value_type>& typesExpected,
                   bool fAllowNull)
@@ -768,6 +771,9 @@ void StartRPCThreads()
         return;
     }
 
+    // Sanitize non-UTF8 compliant RPC responses
+    fSanitizeResponse = GetBoolArg("-rpcforceutf8", true);
+
     rpc_worker_group = new boost::thread_group();
     for (int i = 0; i < GetArg("-rpcthreads", 4); i++)
         rpc_worker_group->create_thread(boost::bind(&asio::io_service::run, rpc_io_service));
@@ -943,6 +949,31 @@ static string JSONRPCExecBatch(const Array& vReq)
     return write_string(Value(ret), false) + "\n";
 }
 
+/** Replace non-UTF8 compliant characters with hex-representations. */
+template<class String_type>
+static void SanitizeNonPrintable(String_type& s)
+{
+    static std::locale loc("en_US.UTF-8");
+
+    typedef typename String_type::const_iterator Iter_type;
+    typedef typename String_type::value_type Char_type;
+
+    String_type result;
+
+    for (Iter_type it = s.begin(); it != s.end(); ++it){
+        const Char_type c(*it);
+
+        if (std::isprint(c, loc)) {
+            result += c;
+        } else {
+            const wint_t unsigned_c((c >= 0) ? c : 256 + c);
+            result += json_spirit::non_printable_to_string<String_type>(unsigned_c);
+        }
+    }
+
+    s.swap(result); // replace input with sanitized string
+}
+
 static bool HTTPReq_JSONRPC(AcceptedConnection *conn,
                             string& strRequest,
                             map<string, string>& mapHeaders,
@@ -998,6 +1029,10 @@ static bool HTTPReq_JSONRPC(AcceptedConnection *conn,
             strReply = JSONRPCExecBatch(valRequest.get_array());
         else
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
+
+        if (fSanitizeResponse) {
+            SanitizeNonPrintable(strReply);
+        }
 
         conn->stream() << HTTPReplyHeader(HTTP_OK, fRun, strReply.size()) << strReply << std::flush;
     }
