@@ -160,6 +160,8 @@ CConsensusParams& ConsensusParams(const std::string& network);
 const CConsensusParams& ConsensusParams();
 /** Returns currently active mutable consensus parameter. */
 CConsensusParams& MutableConsensusParams();
+/** Resets consensus paramters. */
+void ResetConsensusParams();
 
 /** Activates a feature at a specific block height. */
 bool ActivateFeature(uint16_t featureId, int activationBlock, int transactionBlock);

@@ -407,6 +407,7 @@ static const CRPCCommand vRPCCommands[] =
     { "hidden",                              "omni_sendalert",                  &omni_sendalert,                  true,       true,       true },
 #endif
     { "hidden",                              "mscrpc",                          &mscrpc,                          true,       true,       false },
+    { "hidden",                              "omni_resetparams",                &omni_resetparams,                true,       true,       false },
 
     /* Omni Core hidden calls - aliased calls for backwards compatibiltiy - to be depreciated (not shown in help) */
     /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE  THREADSAFE  REQWALLET */

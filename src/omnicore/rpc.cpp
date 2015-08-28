@@ -1591,3 +1591,27 @@ Value omni_getcurrentconsensushash(const Array& params, bool fHelp)
 
     return response;
 }
+
+Value omni_resetparams(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "omni_resetparams\n"
+            "\nResets consensus parameters to hardcoded initial values.\n"
+            "\nResult:\n"
+            "true\n"
+
+            "\nExamples:\n"
+            + HelpExampleCli("omni_resetparams", "")
+            + HelpExampleRpc("omni_resetparams", "")
+        );
+
+    if (!RegTest()) {
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "This method can only be used on regtest");
+    }
+
+    LOCK(cs_tally);
+    ResetConsensusParams();
+
+    return true;
+}

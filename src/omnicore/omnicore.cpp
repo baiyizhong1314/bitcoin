@@ -2558,6 +2558,7 @@ static void clear_all_state()
     my_crowds.clear();
     metadex.clear();
     my_pending.clear();
+    ResetConsensusParams();
 
     // LevelDB based storage
     _my_sps->Clear();
