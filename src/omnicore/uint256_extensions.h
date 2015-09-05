@@ -51,6 +51,11 @@ inline int64_t ConvertTo64(const uint256& number)
     return static_cast<int64_t>(number.GetLow64());
 }
 
+inline uint256 DivideAndRoundUp(const uint256& numerator, const uint256& denominator)
+{
+    return uint256_const::one + (numerator - uint256_const::one) / denominator;
+}
+
 } // namespace mastercore
 
 #endif // OMNICORE_UINT256_EXTENSIONS_H
