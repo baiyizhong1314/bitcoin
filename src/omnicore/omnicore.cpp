@@ -75,7 +75,6 @@
 #include <vector>
 
 using boost::algorithm::token_compress_on;
-using boost::multiprecision::int128_t;
 using boost::to_string;
 
 using json_spirit::Array;
@@ -3798,8 +3797,8 @@ void CMPTradeList::getTradesForPair(uint32_t propertyIdSideA, uint32_t propertyI
           continue;
       }
 
-      rational_t unitPrice(int128_t(0));
-      rational_t inversePrice(int128_t(0));
+      rational_t unitPrice;
+      rational_t inversePrice;
       unitPrice = rational_t(amountReceived, amountSold);
       inversePrice = rational_t(amountSold, amountReceived);
       if (!propertyIdSideAIsDivisible) unitPrice = unitPrice / COIN;

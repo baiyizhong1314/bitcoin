@@ -72,20 +72,18 @@ static const std::string getTradeReturnType(MatchReturnType ret)
     }
 }
 
-// Used by rangeInt64
-static bool rangeInt64(const int128_t& value)
-{
-    return (std::numeric_limits<int64_t>::min() <= value && value <= std::numeric_limits<int64_t>::max());
-}
-
 // Used by xToString
 static bool rangeInt64(const rational_t& value)
 {
-    return (rangeInt64(value.numerator()) && rangeInt64(value.denominator()));
+    return (std::numeric_limits<int64_t>::min() <= value.numerator() &&
+            std::numeric_limits<int64_t>::max() >= value.numerator() &&
+            std::numeric_limits<int64_t>::min() <= value.denominator() &&
+            std::numeric_limits<int64_t>::max() >= value.denominator());
 }
 
 std::string xToString(const rational_t& value)
 {
+    assert(rangeInt64(value));
     if (rangeInt64(value)) {
         int64_t num = value.numerator().convert_to<int64_t>();
         int64_t denom = value.denominator().convert_to<int64_t>();
@@ -355,14 +353,14 @@ std::string CMPMetaDEx::displayFullUnitPrice() const
 
 rational_t CMPMetaDEx::unitPrice() const
 {
-    rational_t effectivePrice(int128_t(0));
+    rational_t effectivePrice;
     if (amount_forsale) effectivePrice = rational_t(amount_desired, amount_forsale);
     return effectivePrice;
 }
 
 rational_t CMPMetaDEx::inversePrice() const
 {
-    rational_t inversePrice(int128_t(0));
+    rational_t inversePrice;
     if (amount_desired) inversePrice = rational_t(amount_forsale, amount_desired);
     return inversePrice;
 }
