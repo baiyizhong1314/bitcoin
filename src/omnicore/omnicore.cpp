@@ -3797,12 +3797,10 @@ void CMPTradeList::getTradesForPair(uint32_t propertyIdSideA, uint32_t propertyI
           continue;
       }
 
-      rational_t unitPrice;
-      rational_t inversePrice;
-      unitPrice = rational_t(amountReceived, amountSold);
-      inversePrice = rational_t(amountSold, amountReceived);
-      if (!propertyIdSideAIsDivisible) unitPrice = unitPrice / COIN;
-      if (!propertyIdSideBIsDivisible) inversePrice = inversePrice / COIN;
+      rational_t unitPrice(amountReceived, amountSold);
+      rational_t inversePrice(amountSold, amountReceived);
+      if (!propertyIdSideAIsDivisible) unitPrice = unitPrice / COIN; // TODO: may overflow!!
+      if (!propertyIdSideBIsDivisible) inversePrice = inversePrice / COIN; // TODO: may overflow!!
       std::string unitPriceStr = xToString(unitPrice); // TODO: not here!
       std::string inversePriceStr = xToString(inversePrice);
 
