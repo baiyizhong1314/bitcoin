@@ -228,7 +228,8 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
 
             // This will always be better for Bob. Rounding in the other direction
             // will always be impossible, because ot would violate Bob's accepted price
-            int64_t nWouldPay = xToInt64(rWouldPay, true);
+            int128_t iWouldPay = xToInt128(rWouldPay, true);
+            int64_t nWouldPay = iWouldPay.convert_to<int64_t>();
 
             // If the resulting adjusted unit price is higher than Alice' price, the
             // orders shall not execute, and no representable fill is made
