@@ -16,12 +16,10 @@
 
 namespace mastercore {
 namespace uint256_const {
-//! The number 0 as uint256
-const uint256 zero(static_cast<uint64_t>(0));
 //! The number 1 as uint256
-const uint256 one(static_cast<uint64_t>(1));
+static const uint256 one(static_cast<uint64_t>(1));
 //! The highest number in range of int64_t as uint256
-const uint256 max_int64(static_cast<uint64_t>(std::numeric_limits<int64_t>::max()));
+static const uint256 max_int64(static_cast<uint64_t>(std::numeric_limits<int64_t>::max()));
 }
 
 /**

@@ -79,21 +79,6 @@ BOOST_AUTO_TEST_CASE(uint256_conversion)
     BOOST_CHECK_EQUAL(9223372036854775807LL, ConvertTo64(ConvertTo256(9223372036854775807LL)));
 }
 
-BOOST_AUTO_TEST_CASE(uint256_zero)
-{
-    BOOST_CHECK_EQUAL(0, ConvertTo64(uint256_const::zero));
-}
-
-BOOST_AUTO_TEST_CASE(uint256_one)
-{
-    BOOST_CHECK_EQUAL(1, ConvertTo64(uint256_const::one));
-}
-
-BOOST_AUTO_TEST_CASE(uint256_max_int64)
-{
-    BOOST_CHECK_EQUAL(9223372036854775807LL, ConvertTo64(uint256_const::max_int64));
-}
-
 BOOST_AUTO_TEST_CASE(uint256_modulo)
 {
     BOOST_CHECK_EQUAL(1, ConvertTo64(Modulo256(ConvertTo256(9), ConvertTo256(4))));
@@ -102,6 +87,11 @@ BOOST_AUTO_TEST_CASE(uint256_modulo)
 BOOST_AUTO_TEST_CASE(uint256_modulo_auto_conversion)
 {
     BOOST_CHECK_EQUAL(2, ConvertTo64(Modulo256(17, 3)));
+}
+
+BOOST_AUTO_TEST_CASE(uint256_divide_and_round_up)
+{
+    BOOST_CHECK_EQUAL(3, ConvertTo64(DivideAndRoundUp(ConvertTo256(5), ConvertTo256(2))));
 }
 
 
