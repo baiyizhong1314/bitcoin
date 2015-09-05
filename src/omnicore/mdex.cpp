@@ -204,11 +204,11 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
 
             // First determine how many representable (indivisible) tokens Alice can
             // purchase from Bob, using Bob's unit price
-            rational_t rCouldBuy = int128_t(pnew->getAmountRemaining()) * rational_t(int128_t(pold->getAmountForSale()), int128_t(pold->getAmountDesired()));
+            rational_t rCouldBuy = rational_t((int128_t(pnew->getAmountRemaining()) * int128_t(pold->getAmountForSale())), int128_t(pold->getAmountDesired()));
 
             // This implies rounding down, since rounding up is impossible, and would
             // require more tokens than Alice has
-            int128_t iCouldBuy = xToInt128(rCouldBuy, false);
+            int128_t iCouldBuy = rCouldBuy.numerator() / rCouldBuy.denominator();
 
             int64_t nCouldBuy = 0;
             if (iCouldBuy < int128_t(pold->getAmountRemaining())) {
