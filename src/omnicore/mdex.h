@@ -19,7 +19,63 @@
 #include <string>
 
 typedef boost::multiprecision::cpp_dec_float_100 dec_float;
-typedef boost::rational<int64_t> rational_t;
+
+
+class rational_t
+{
+public:
+    rational_t()
+      : m_numerator(0), m_denominator(1) {}
+
+    rational_t(int64_t num)
+      : m_numerator(num), m_denominator(1) {}
+
+    rational_t(int64_t num, int64_t denom)
+      : m_numerator(num), m_denominator(denom) {}
+
+    int64_t numerator() const { return m_numerator; }
+    int64_t denominator() const { return m_denominator; }
+
+    bool operator<(const rational_t& rhs) const
+    {
+        return ((uint256(m_numerator) * uint256(rhs.m_denominator)) <
+                (uint256(rhs.m_numerator) * uint256(m_denominator)));
+    }
+
+    bool operator<=(const rational_t& rhs) const
+    {
+        return ((uint256(m_numerator) * uint256(rhs.m_denominator)) <=
+                (uint256(rhs.m_numerator) * uint256(m_denominator)));
+    }
+
+    bool operator>(const rational_t& rhs) const
+    {
+        return ((uint256(m_numerator) * uint256(rhs.m_denominator)) >
+                (uint256(rhs.m_numerator) * uint256(m_denominator)));
+    }
+
+    bool operator>=(const rational_t& rhs) const
+    {
+        return ((uint256(m_numerator) * uint256(rhs.m_denominator)) >=
+                (uint256(rhs.m_numerator) * uint256(m_denominator)));
+    }
+
+    bool operator==(const rational_t& rhs) const
+    {
+        return ((uint256(m_numerator) * uint256(rhs.m_denominator)) ==
+                (uint256(rhs.m_numerator) * uint256(m_denominator)));
+    }
+
+    bool operator!=(const rational_t& rhs) const
+    {
+        return ((uint256(m_numerator) * uint256(rhs.m_denominator)) ==
+                (uint256(rhs.m_numerator) * uint256(m_denominator)));
+    }
+
+private:
+    int64_t m_numerator;
+    int64_t m_denominator;
+};
 
 #define DISPLAY_PRECISION_LEN  50
 
