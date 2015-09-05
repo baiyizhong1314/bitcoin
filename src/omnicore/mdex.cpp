@@ -84,11 +84,6 @@ static bool rangeInt64(const rational_t& value)
     return (rangeInt64(value.numerator()) && rangeInt64(value.denominator()));
 }
 
-std::string xToString(const int128_t& value)
-{
-    return strprintf("%s", boost::lexical_cast<std::string>(value));
-}
-
 std::string xToString(const rational_t& value)
 {
     if (rangeInt64(value)) {
@@ -97,7 +92,9 @@ std::string xToString(const rational_t& value)
         dec_float x = dec_float(num) / dec_float(denom);
         return x.str(DISPLAY_PRECISION_LEN, std::ios_base::fixed);
     } else {
-        return strprintf("%s / %s", xToString(value.numerator()), xToString(value.denominator()));
+        return strprintf("%s / %s",
+                boost::lexical_cast<std::string>(value.numerator()),
+                boost::lexical_cast<std::string>(value.denominator()));
     }
 }
 
