@@ -72,7 +72,7 @@ static const std::string getTradeReturnType(MatchReturnType ret)
     }
 }
 
-// Used by rangeInt64, xToInt64
+// Used by rangeInt64
 static bool rangeInt64(const int128_t& value)
 {
     return (std::numeric_limits<int64_t>::min() <= value && value <= std::numeric_limits<int64_t>::max());
@@ -82,17 +82,6 @@ static bool rangeInt64(const int128_t& value)
 static bool rangeInt64(const rational_t& value)
 {
     return (rangeInt64(value.numerator()) && rangeInt64(value.denominator()));
-}
-
-// Used by CMPMetaDEx::displayUnitPrice
-static int64_t xToRoundUpInt64(const rational_t& value)
-{
-    // for integer rounding up: ceil(num / denom) => 1 + (num - 1) / denom
-    int128_t result = int128_t(1) + (value.numerator() - int128_t(1)) / value.denominator();
-
-    assert(rangeInt64(result));
-
-    return result.convert_to<int64_t>();
 }
 
 std::string xToString(const dec_float& value)
@@ -338,7 +327,8 @@ std::string CMPMetaDEx::displayUnitPrice() const
      // we must always round up here - for example if the actual price required is 0.3333333344444
      // round: 0.33333333 - price is insufficient and thus won't result in a trade
      // round: 0.33333334 - price will be sufficient to result in a trade
-     int64_t nDisplayValue = xToRoundUpInt64(tmpDisplayPrice);
+     int128_t iDisplayValue = int128_t(1) + (tmpDisplayPrice.numerator() - int128_t(1)) / tmpDisplayPrice.denominator();
+     int64_t nDisplayValue = iDisplayValue.convert_to<int64_t>();
      std::string displayValue = FormatDivisibleMP(nDisplayValue);
      return displayValue;
 }
