@@ -380,7 +380,7 @@ rational_t CMPMetaDEx::inversePrice() const
 
 int64_t CMPMetaDEx::getAmountToFill() const
 {
-    rational_t rAmountNeededToFill = amount_remaining * unitPrice();
+    rational_t rAmountNeededToFill = amount_remaining * rational_t(amount_desired, amount_forsale);
     // round up to ensure that the amount we present will actually result in buying all available tokens
     int64_t iAmountNeededToFill = xToInt64(rAmountNeededToFill, true);
     return iAmountNeededToFill;
