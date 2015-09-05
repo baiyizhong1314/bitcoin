@@ -224,11 +224,9 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
 
             // If the amount Alice would have to pay to buy Bob's tokens at his price
             // is fractional, always round UP the amount Alice has to pay
-            rational_t rWouldPay = rational_t((int128_t(nCouldBuy) * int128_t(pold->getAmountDesired())), int128_t(pold->getAmountForSale()));
-
             // This will always be better for Bob. Rounding in the other direction
             // will always be impossible, because ot would violate Bob's accepted price
-            int128_t iWouldPay = xToInt128(rWouldPay, true);
+            int128_t iWouldPay = int128_t(1) + ((int128_t(nCouldBuy) * int128_t(pold->getAmountDesired())) - int128_t(1)) / int128_t(pold->getAmountForSale());
             int64_t nWouldPay = iWouldPay.convert_to<int64_t>();
 
             // If the resulting adjusted unit price is higher than Alice' price, the
