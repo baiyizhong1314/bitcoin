@@ -84,18 +84,11 @@ static bool rangeInt64(const rational_t& value)
     return (rangeInt64(value.numerator()) && rangeInt64(value.denominator()));
 }
 
-// Used by xToInt64
-static int128_t xToInt128(const rational_t& value)
-{
-    // for integer rounding up: ceil(num / denom) => 1 + (num - 1) / denom
-    int128_t result = int128_t(1) + (value.numerator() - int128_t(1)) / value.denominator();
-    return result;
-}
-
 // Used by CMPMetaDEx::displayUnitPrice
 static int64_t xToRoundUpInt64(const rational_t& value)
 {
-    int128_t result = xToInt128(value);
+    // for integer rounding up: ceil(num / denom) => 1 + (num - 1) / denom
+    int128_t result = int128_t(1) + (value.numerator() - int128_t(1)) / value.denominator();
 
     assert(rangeInt64(result));
 
