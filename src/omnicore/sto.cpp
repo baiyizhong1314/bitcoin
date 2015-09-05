@@ -75,7 +75,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
 
         uint256 owns = ConvertTo256(it->first);
         uint256 temp = owns * ConvertTo256(amount);
-        uint256 piece = uint256_const::one + ((temp - uint256_const::one) / ConvertTo256(totalTokens));
+        uint256 piece = DivideAndRoundUp(temp, ConvertTo256(totalTokens));
 
         int64_t will_really_receive = 0;
         int64_t should_receive = ConvertTo64(piece);

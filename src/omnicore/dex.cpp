@@ -418,7 +418,7 @@ int64_t calculateDExPurchase(const int64_t amountOffered, const int64_t amountDe
     uint256 amountPaid256 = ConvertTo256(amountPaid);
 
     // actual calculation; round up
-    uint256 amountPurchased256 = uint256_const::one + ((amountPaid256 * amountOffered256) - uint256_const::one) / amountDesired256;
+    uint256 amountPurchased256 = DivideAndRoundUp((amountPaid256 * amountOffered256), amountDesired256);
 
     // convert back to int64_t
     return ConvertTo64(amountPurchased256);
