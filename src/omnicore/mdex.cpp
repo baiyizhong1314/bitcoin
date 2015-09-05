@@ -226,8 +226,8 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
             // is fractional, always round UP the amount Alice has to pay
             // This will always be better for Bob. Rounding in the other direction
             // will always be impossible, because ot would violate Bob's accepted price
-            int128_t iWouldPay = int128_t(1) + ((int128_t(nCouldBuy) * int128_t(pold->getAmountDesired())) - int128_t(1)) / int128_t(pold->getAmountForSale());
-            int64_t nWouldPay = iWouldPay.convert_to<int64_t>();
+            uint256 iWouldPay = uint256_const::one + ((ConvertTo256(nCouldBuy) * ConvertTo256(pold->getAmountDesired())) - uint256_const::one) / ConvertTo256(pold->getAmountForSale());
+            int64_t nWouldPay = ConvertTo64(iWouldPay);
 
             // If the resulting adjusted unit price is higher than Alice' price, the
             // orders shall not execute, and no representable fill is made
