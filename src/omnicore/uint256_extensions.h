@@ -1,11 +1,11 @@
-#ifndef OMNICORE_UINT256_EXTENSIONS_H
-#define OMNICORE_UINT256_EXTENSIONS_H
-
 /**
  * @file uint256_extensions.h
  *
  * This file provides helper to handle uint256 calculations.
  */
+
+#ifndef OMNICORE_UINT256_EXTENSIONS_H
+#define OMNICORE_UINT256_EXTENSIONS_H
 
 #include "uint256.h"
 
