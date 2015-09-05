@@ -319,16 +319,20 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
     return NewReturn;
 }
 
-// Used for display of unit prices to 8 decimal places at UI layer - automatically returns unit or inverse price as needed
+/**
+ * Used for display of unit prices to 8 decimal places at UI layer.
+ *
+ * Automatically returns unit or inverse price as needed.
+ */
 std::string CMPMetaDEx::displayUnitPrice() const
 {
      rational_t tmpDisplayPrice;
-     if (desired_property == OMNI_PROPERTY_MSC || desired_property == OMNI_PROPERTY_TMSC) {
+     if (getDesProperty() == OMNI_PROPERTY_MSC || getDesProperty() == OMNI_PROPERTY_TMSC) {
          tmpDisplayPrice = unitPrice();
-         if (isPropertyDivisible(property)) tmpDisplayPrice = tmpDisplayPrice * COIN;
+         if (isPropertyDivisible(getProperty())) tmpDisplayPrice = tmpDisplayPrice * COIN;
      } else {
          tmpDisplayPrice = inversePrice();
-         if (isPropertyDivisible(desired_property)) tmpDisplayPrice = tmpDisplayPrice * COIN;
+         if (isPropertyDivisible(getDesProperty())) tmpDisplayPrice = tmpDisplayPrice * COIN;
      }
 
      // offers with unit prices under 0.00000001 will be excluded from UI layer - TODO: find a better way to identify sub 0.00000001 prices
@@ -340,6 +344,26 @@ std::string CMPMetaDEx::displayUnitPrice() const
      // round: 0.33333334 - price will be sufficient to result in a trade
      std::string displayValue = FormatDivisibleMP(xToInt64(tmpDisplayPrice, true));
      return displayValue;
+}
+
+/**
+ * Used for display of unit prices with 50 decimal places at RPC layer.
+ *
+ * Automatically returns unit or inverse price as needed.
+ */
+std::string CMPMetaDEx::displayFullUnitPrice() const
+{
+    // unit price display adjustment based on divisibility and always showing prices in MSC/TMSC
+    rational_t tempUnitPrice(int128_t(0));
+    if ((getProperty() == OMNI_PROPERTY_MSC) || (getProperty() == OMNI_PROPERTY_TMSC)) {
+        tempUnitPrice = inversePrice();
+        if (!isPropertyDivisible(getDesProperty())) tempUnitPrice = tempUnitPrice/COIN;
+    } else {
+        tempUnitPrice = unitPrice();
+        if (!isPropertyDivisible(getProperty())) tempUnitPrice = tempUnitPrice/COIN;
+    }
+    std::string unitPriceStr = xToString(tempUnitPrice);
+    return unitPriceStr;
 }
 
 rational_t CMPMetaDEx::unitPrice() const
