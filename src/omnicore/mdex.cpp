@@ -206,11 +206,11 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
             // purchase from Bob, using Bob's unit price
             // This implies rounding down, since rounding up is impossible, and would
             // require more tokens than Alice has
-            int128_t iCouldBuy = (int128_t(pnew->getAmountRemaining()) * int128_t(pold->getAmountForSale())) / int128_t(pold->getAmountDesired());
+            uint256 iCouldBuy = (ConvertTo256(pnew->getAmountRemaining()) * ConvertTo256(pold->getAmountForSale())) / ConvertTo256(pold->getAmountDesired());
 
             int64_t nCouldBuy = 0;
-            if (iCouldBuy < int128_t(pold->getAmountRemaining())) {
-                nCouldBuy = iCouldBuy.convert_to<int64_t>();
+            if (iCouldBuy < ConvertTo256(pold->getAmountRemaining())) {
+                nCouldBuy = ConvertTo64(iCouldBuy);
             } else {
                 nCouldBuy = pold->getAmountRemaining();
             }
