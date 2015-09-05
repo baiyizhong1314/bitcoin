@@ -5,6 +5,7 @@
 #include "omnicore/omnicore.h"
 #include "omnicore/sp.h"
 #include "omnicore/tx.h"
+#include "omnicore/uint256_extensions.h"
 
 #include "chain.h"
 #include "main.h"
@@ -203,7 +204,7 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
 
             // First determine how many representable (indivisible) tokens Alice can
             // purchase from Bob, using Bob's unit price
-            rational_t rCouldBuy = pnew->getAmountRemaining() * pold->inversePrice();
+            rational_t rCouldBuy = pnew->getAmountRemaining() * rational_t(pold->getAmountForSale(), pold->getAmountDesired());
 
             // This implies rounding down, since rounding up is impossible, and would
             // require more tokens than Alice has
