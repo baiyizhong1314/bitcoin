@@ -324,13 +324,21 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
  */
 std::string CMPMetaDEx::displayUnitPrice() const
 {
-     rational_t tmpDisplayPrice;
-     if (getDesProperty() == OMNI_PROPERTY_MSC || getDesProperty() == OMNI_PROPERTY_TMSC) {
-         tmpDisplayPrice = unitPrice();
-         if (isPropertyDivisible(getProperty())) tmpDisplayPrice = tmpDisplayPrice * COIN;
-     } else {
-         tmpDisplayPrice = inversePrice();
-         if (isPropertyDivisible(getDesProperty())) tmpDisplayPrice = tmpDisplayPrice * COIN;
+    rational_t tmpDisplayPrice;
+    if (getDesProperty() == OMNI_PROPERTY_MSC || getDesProperty() == OMNI_PROPERTY_TMSC) {
+        if (amount_forsale) {
+            tmpDisplayPrice = rational_t(amount_desired, amount_forsale);
+        }
+        if (isPropertyDivisible(getProperty())) {
+            tmpDisplayPrice = tmpDisplayPrice * COIN;
+        }
+    } else {
+        if (amount_desired) {
+            tmpDisplayPrice = rational_t(amount_forsale, amount_desired);
+        }
+        if (isPropertyDivisible(getDesProperty())) {
+            tmpDisplayPrice = tmpDisplayPrice * COIN;
+        }
      }
 
      // offers with unit prices under 0.00000001 will be excluded from UI layer - TODO: find a better way to identify sub 0.00000001 prices
@@ -352,13 +360,21 @@ std::string CMPMetaDEx::displayUnitPrice() const
 std::string CMPMetaDEx::displayFullUnitPrice() const
 {
     // unit price display adjustment based on divisibility and always showing prices in MSC/TMSC
-    rational_t tempUnitPrice(int128_t(0));
+    rational_t tempUnitPrice;
     if ((getProperty() == OMNI_PROPERTY_MSC) || (getProperty() == OMNI_PROPERTY_TMSC)) {
-        tempUnitPrice = inversePrice();
-        if (!isPropertyDivisible(getDesProperty())) tempUnitPrice = tempUnitPrice/COIN;
+        if (amount_desired) {
+            tempUnitPrice = rational_t(amount_forsale, amount_desired);
+        }
+        if (!isPropertyDivisible(getDesProperty())) {
+            tempUnitPrice = tempUnitPrice / COIN;
+        }
     } else {
-        tempUnitPrice = unitPrice();
-        if (!isPropertyDivisible(getProperty())) tempUnitPrice = tempUnitPrice/COIN;
+        if (amount_forsale) {
+            tempUnitPrice = rational_t(amount_desired, amount_forsale);
+        }
+        if (!isPropertyDivisible(getProperty())) {
+            tempUnitPrice = tempUnitPrice / COIN;
+        }
     }
     std::string unitPriceStr = xToString(tempUnitPrice);
     return unitPriceStr;
