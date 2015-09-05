@@ -7,7 +7,6 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
 #include <boost/rational.hpp>
 
 #include <openssl/sha.h>
@@ -19,10 +18,8 @@
 #include <set>
 #include <string>
 
-using boost::multiprecision::int128_t;
-
 typedef boost::multiprecision::cpp_dec_float_100 dec_float;
-typedef boost::rational<int128_t> rational_t;
+typedef boost::rational<int64_t> rational_t;
 
 #define DISPLAY_PRECISION_LEN  50
 

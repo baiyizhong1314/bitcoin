@@ -12,7 +12,6 @@
 #include "tinyformat.h"
 #include "uint256.h"
 
-#include <boost/multiprecision/cpp_int.hpp>
 #include <boost/rational.hpp>
 
 #include <openssl/sha.h>
@@ -72,28 +71,10 @@ static const std::string getTradeReturnType(MatchReturnType ret)
     }
 }
 
-// Used by xToString
-static bool rangeInt64(const rational_t& value)
-{
-    return (std::numeric_limits<int64_t>::min() <= value.numerator() &&
-            std::numeric_limits<int64_t>::max() >= value.numerator() &&
-            std::numeric_limits<int64_t>::min() <= value.denominator() &&
-            std::numeric_limits<int64_t>::max() >= value.denominator());
-}
-
 std::string xToString(const rational_t& value)
 {
-    assert(rangeInt64(value));
-    if (rangeInt64(value)) {
-        int64_t num = value.numerator().convert_to<int64_t>();
-        int64_t denom = value.denominator().convert_to<int64_t>();
-        dec_float x = dec_float(num) / dec_float(denom);
-        return x.str(DISPLAY_PRECISION_LEN, std::ios_base::fixed);
-    } else {
-        return strprintf("%s / %s",
-                boost::lexical_cast<std::string>(value.numerator()),
-                boost::lexical_cast<std::string>(value.denominator()));
-    }
+    dec_float x = dec_float(value.numerator()) / dec_float(value.denominator());
+    return x.str(DISPLAY_PRECISION_LEN, std::ios_base::fixed);
 }
 
 // find the best match on the market
@@ -293,18 +274,16 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
  */
 std::string CMPMetaDEx::displayUnitPrice() const
 {
+    return "";
+/*
     rational_t tmpDisplayPrice;
     if (getDesProperty() == OMNI_PROPERTY_MSC || getDesProperty() == OMNI_PROPERTY_TMSC) {
-        if (amount_forsale) {
-            tmpDisplayPrice = rational_t(amount_desired, amount_forsale);
-        }
+        tmpDisplayPrice = unitPrice();
         if (isPropertyDivisible(getProperty())) {
             tmpDisplayPrice = tmpDisplayPrice * COIN;
         }
     } else {
-        if (amount_desired) {
-            tmpDisplayPrice = rational_t(amount_forsale, amount_desired);
-        }
+        tmpDisplayPrice = inversePrice();
         if (isPropertyDivisible(getDesProperty())) {
             tmpDisplayPrice = tmpDisplayPrice * COIN;
         }
@@ -321,6 +300,7 @@ std::string CMPMetaDEx::displayUnitPrice() const
      int64_t nDisplayValue = iDisplayValue.convert_to<int64_t>();
      std::string displayValue = FormatDivisibleMP(nDisplayValue);
      return displayValue;
+*/
 }
 
 /**
@@ -330,25 +310,24 @@ std::string CMPMetaDEx::displayUnitPrice() const
  */
 std::string CMPMetaDEx::displayFullUnitPrice() const
 {
+    return "";
+/*
     // unit price display adjustment based on divisibility and always showing prices in MSC/TMSC
     rational_t tempUnitPrice;
     if ((getProperty() == OMNI_PROPERTY_MSC) || (getProperty() == OMNI_PROPERTY_TMSC)) {
-        if (amount_desired) {
-            tempUnitPrice = rational_t(amount_forsale, amount_desired);
-        }
+        tempUnitPrice = inversePrice();
         if (!isPropertyDivisible(getDesProperty())) {
             tempUnitPrice = tempUnitPrice / COIN;
         }
     } else {
-        if (amount_forsale) {
-            tempUnitPrice = rational_t(amount_desired, amount_forsale);
-        }
+        tempUnitPrice = unitPrice();
         if (!isPropertyDivisible(getProperty())) {
             tempUnitPrice = tempUnitPrice / COIN;
         }
     }
     std::string unitPriceStr = xToString(tempUnitPrice);
     return unitPriceStr;
+*/
 }
 
 rational_t CMPMetaDEx::unitPrice() const
