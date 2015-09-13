@@ -3,6 +3,7 @@
 #include "random.h"
 #include "utiltime.h"
 
+#include <boost/lexical_cast.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/rational.hpp>
 #include <boost/test/unit_test.hpp>
@@ -23,7 +24,7 @@ typedef boost::rational<boost::multiprecision::checked_int128_t> rational_t;
 static const int log_level = 0;
 static const int64_t max_distance = 500;
 static const int64_t max_rounds = 25;
-static const int64_t max_total_seconds = 60 * 15; // 15 minutes
+static const int64_t max_total_seconds = 15; // seconds
 
 // flags
 static const unsigned int not_equal        = (1U << 0);
@@ -355,5 +356,46 @@ BOOST_AUTO_TEST_CASE(rational_comp_test_loop)
     }
 }
 
+BOOST_AUTO_TEST_CASE(boost_i128)
+{
+    using boost::multiprecision::checked_int128_t;
+
+    PrintToConsole("checked_int128_t:   max: %s\n",
+            boost::lexical_cast<std::string>(std::numeric_limits<checked_int128_t>::max()));
+
+    checked_int128_t num("131099371288072266900000000000000000000");    
+    checked_int128_t denom("156352045478212887156");
+    checked_int128_t result = num / denom;
+    checked_int128_t expected("838488366986797800");
+
+    PrintToConsole("checked_int128_t:   %s / %s = %s (expected: %s)\n",
+            boost::lexical_cast<std::string>(num),
+            boost::lexical_cast<std::string>(denom),
+            boost::lexical_cast<std::string>(result),
+            boost::lexical_cast<std::string>(expected));
+
+    BOOST_CHECK_EQUAL(expected, result);
+}
+
+BOOST_AUTO_TEST_CASE(boost_u128)
+{
+    using boost::multiprecision::checked_uint128_t;
+
+    PrintToConsole("checked_uint128_t:  max: %s\n",
+            boost::lexical_cast<std::string>(std::numeric_limits<checked_uint128_t>::max()));
+
+    checked_uint128_t num("131099371288072266900000000000000000000");    
+    checked_uint128_t denom("156352045478212887156");
+    checked_uint128_t result = num / denom;
+    checked_uint128_t expected("838488366986797800");
+
+    PrintToConsole("checked_uint128_t:  %s / %s = %s (expected: %s)\n",
+            boost::lexical_cast<std::string>(num),
+            boost::lexical_cast<std::string>(denom),
+            boost::lexical_cast<std::string>(result),
+            boost::lexical_cast<std::string>(expected));
+
+    BOOST_CHECK_EQUAL(expected, result);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
