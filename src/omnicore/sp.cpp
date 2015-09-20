@@ -589,15 +589,59 @@ bool mastercore::isCrowdsaleActive(uint32_t propertyId)
     return false;
 }
 
+static int64_t calculateMissedTokens(const CMPSPInfo::Entry& sp, const CMPCrowd& crowdsale)
+{
+    // consistency check
+    assert(getTotalTokens(crowdsale.getPropertyId())
+            == (crowdsale.getIssuerCreated() + crowdsale.getUserCreated()));
+
+    uint256 amountMissing;
+    uint256 bonusPercentForIssuer = ConvertTo256(sp.percentage);
+    uint256 amountAlreadyCreditedToIssuer = ConvertTo256(crowdsale.getIssuerCreated());
+    uint256 amountCreditedToUsers = ConvertTo256(crowdsale.getUserCreated());
+    uint256 amountTotal = amountCreditedToUsers + amountAlreadyCreditedToIssuer;
+
+    // calculate theoretical bonus for issuer based on the amount of
+    // tokens credited to users
+    uint256 exactBonus = amountCreditedToUsers * bonusPercentForIssuer;
+    exactBonus /= ConvertTo256(100); // 100 %
+
+    // there shall be no negative missing amount
+    assert(exactBonus >= amountAlreadyCreditedToIssuer);
+
+    // subtract the amount already credited to the issuer
+    if (exactBonus > amountAlreadyCreditedToIssuer) {
+        amountMissing = exactBonus - amountAlreadyCreditedToIssuer;
+    }
+
+    // calculate theoretical total amount of all tokens
+    uint256 newTotal = amountTotal + amountMissing;
+
+    // reduce to max. possible amount
+    if (newTotal > uint256_const::max_int64) {
+        amountMissing = uint256_const::max_int64 - amountTotal;
+    }
+
+    // there shall be no negative missing amount
+    assert(amountMissing >= 0);
+
+    return ConvertTo64(amountMissing);
+}
+
 int64_t mastercore::calculateFractional(const CMPSPInfo::Entry& sp, const CMPCrowd& crowdsale)
 {
-    return calculateFractional(sp.prop_type,
+    int64_t amountNew = calculateMissedTokens(sp, crowdsale);
+    int64_t amountOld = calculateFractional(sp.prop_type,
             sp.early_bird,
             sp.deadline,
             sp.num_tokens,
             sp.percentage,
             crowdsale.getDatabase(),
             crowdsale.getIssuerCreated());
+
+    assert (amountNew == amountOld);
+
+    return amountNew;
 }
 
 // calculates and returns fundraiser bonus, issuer premine, and total tokens
@@ -706,7 +750,7 @@ void mastercore::calculateFundraiser(bool inflateAmount, int64_t amtTransfer, ui
     // Total tokens including remainders
     uint256 createdTokens = ConvertTo256(amtTransfer);
     if (inflateAmount) {
-        createdTokens *= 100000000L;
+        createdTokens *= ConvertTo256(100000000L);
     }
     createdTokens *= ConvertTo256(numProps);
     createdTokens *= bonusPercentage_;
@@ -725,8 +769,8 @@ void mastercore::calculateFundraiser(bool inflateAmount, int64_t amtTransfer, ui
 
     uint256 newTotalCreated = ConvertTo256(totalTokens) + createdTokens_int + issuerTokens_int;
 
-    if (newTotalCreated > ConvertTo256(MAX_INT_8_BYTES)) {
-        uint256 maxCreatable = ConvertTo256(MAX_INT_8_BYTES) - ConvertTo256(totalTokens);
+    if (newTotalCreated > uint256_const::max_int64) {
+        uint256 maxCreatable = uint256_const::max_int64 - ConvertTo256(totalTokens);
         uint256 created = createdTokens_int + issuerTokens_int;
 
         // Calcluate the ratio of tokens for what we can create and apply it
@@ -739,8 +783,11 @@ void mastercore::calculateFundraiser(bool inflateAmount, int64_t amtTransfer, ui
         issuerTokens_int *= satoshi_precision_;
         issuerTokens_int /= ratio;
 
+        assert(issuerTokens_int <= maxCreatable);
+
         // The tokens for the user
-        createdTokens_int = ConvertTo256(MAX_INT_8_BYTES) - issuerTokens_int;
+        //createdTokens_int = ConvertTo256(MAX_INT_8_BYTES) - issuerTokens_int;
+        createdTokens_int = maxCreatable - issuerTokens_int;
 
         // Close the crowdsale after assigning all tokens
         close_crowdsale = true;
