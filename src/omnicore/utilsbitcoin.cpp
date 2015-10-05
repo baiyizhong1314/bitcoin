@@ -4,6 +4,8 @@
  * This file contains certain helpers to access information about Bitcoin.
  */
 
+#include "omnicore/utilsbitcoin.h"
+
 #include "chain.h"
 #include "chainparams.h"
 #include "main.h"
@@ -48,6 +50,19 @@ CBlockIndex* GetBlockIndex(const uint256& hash)
     }
 
     return pBlockIndex;
+}
+
+/**
+ * @return True, if the block is in the main chain, and false otherwise.
+ */
+bool ChainContains(const CBlockIndex* pindex)
+{
+    if (pindex == NULL) {
+        return false;
+    }
+
+    LOCK(cs_main);
+    return chainActive.Contains(pindex);
 }
 
 bool MainNet()

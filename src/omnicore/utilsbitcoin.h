@@ -1,5 +1,5 @@
-#ifndef OMNICORE_BITCOIN_H
-#define	OMNICORE_BITCOIN_H
+#ifndef OMNICORE_UTILSBITCOIN_H
+#define OMNICORE_UTILSBITCOIN_H
 
 class CBlockIndex;
 class uint256;
@@ -14,6 +14,8 @@ int GetHeight();
 uint32_t GetLatestBlockTime();
 /** Returns the CBlockIndex for a given block hash, or NULL. */
 CBlockIndex* GetBlockIndex(const uint256& hash);
+/** Checks, whether the block is in the main chain. */
+bool ChainContains(const CBlockIndex* pindex);
 
 bool MainNet();
 bool TestNet();
@@ -22,4 +24,4 @@ bool UnitTest();
 bool isNonMainNet();
 }
 
-#endif // OMNICORE_BITCOIN_H
+#endif // OMNICORE_UTILSBITCOIN_H
