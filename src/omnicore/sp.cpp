@@ -799,7 +799,10 @@ void mastercore::eraseMaxedCrowdsale(const std::string& address, int64_t blockTi
         sp.timeclosed = blockTime;
 
         // update SP with this data
-        sp.update_block = chainActive[block]->GetBlockHash();
+        {
+            LOCK(cs_main);
+            sp.update_block = chainActive[block]->GetBlockHash();
+        }
         assert(_my_sps->updateSP(crowdsale.getPropertyId(), sp));
 
         // no calculate fractional calls here, no more tokens (at MAX)

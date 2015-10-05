@@ -1793,7 +1793,14 @@ static int msc_initial_scan(int nFirstBlock)
     PrintToConsole("Scanning for transactions in block %d to block %d..\n", nFirstBlock, nLastBlock);
 
     // used to print the progress to the console and notifies the UI
-    ProgressReporter progressReporter(chainActive[nFirstBlock], chainActive[nLastBlock]);
+    CBlockIndex* pFirstIndex = NULL;
+    CBlockIndex* pLastIndex = NULL;
+    {
+        LOCK(cs_main);
+        pFirstIndex = chainActive[nFirstBlock];
+        pLastIndex = chainActive[nLastBlock];
+    }
+    ProgressReporter progressReporter(pFirstIndex, pLastIndex);
 
     // check if using seed block filter should be disabled
     bool seedBlockFilterEnabled = GetBoolArg("-omniseedblockfilter", true);
@@ -1805,7 +1812,11 @@ static int msc_initial_scan(int nFirstBlock)
             break;
         }
 
-        CBlockIndex* pblockindex = chainActive[nBlock];
+        CBlockIndex* pblockindex = NULL;
+        {
+            LOCK(cs_main);
+            pblockindex = chainActive[nBlock];
+        }
         if (NULL == pblockindex) break;
         std::string strBlockHash = pblockindex->GetBlockHash().GetHex();
 
@@ -2195,7 +2206,7 @@ static int load_most_relevant_state()
     return -1;
   }
 
-  while (NULL != spBlockIndex && false == chainActive.Contains(spBlockIndex)) {
+  while (NULL != spBlockIndex && false == ChainContains(spBlockIndex)) {
     int remainingSPs = _my_sps->popBlock(spBlockIndex->GetBlockHash());
     if (remainingSPs < 0) {
       // trigger a full reparse, if the levelDB cannot roll back
@@ -2228,7 +2239,7 @@ static int load_most_relevant_state()
       uint256 blockHash;
       blockHash.SetHex(vstr[1]);
       CBlockIndex *pBlockIndex = GetBlockIndex(blockHash);
-      if (pBlockIndex == NULL || false == chainActive.Contains(pBlockIndex)) {
+      if (pBlockIndex == NULL || false == ChainContains(pBlockIndex)) {
         continue;
       }
 
