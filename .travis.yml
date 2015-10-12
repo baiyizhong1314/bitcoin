@@ -29,6 +29,12 @@ cache:
   - $HOME/.gradle/caches
 matrix:
   fast_finish: true
+    - compiler: ": ARM"
+      env: HOST=arm-linux-gnueabihf DEP_OPTS="NO_QT=1" GOAL="install" BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports"
+      addons:
+        apt:
+          packages:
+            - g++-arm-linux-gnueabihf
   include:
     - compiler: ": omnicored DDEBUG_LOCKORDER"
       env: HOST=x86_64-unknown-linux-gnu DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-glibc-back-compat CPPFLAGS=-DDEBUG_LOCKORDER"
