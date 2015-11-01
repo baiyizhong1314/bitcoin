@@ -19,7 +19,8 @@ env:
     - WINEDEBUG=fixme-all
     - RUN_OMNIJ_TESTS=false
     - RUN_WIN_TESTS=false
-sudo: false
+sudo: required
+dist: trusty
 cache:
   ccache: true
   directories:
