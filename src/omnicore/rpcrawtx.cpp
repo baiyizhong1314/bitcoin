@@ -30,9 +30,9 @@ using namespace json_spirit;
 
 Value omni_decodetransaction(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
+    if (fHelp || params.size() < 1 || params.size() > 3)
         throw std::runtime_error(
-            "omni_decodetransaction \"rawtx\" ( \"prevtxs\" )\n"
+            "omni_decodetransaction \"rawtx\" ( \"prevtxs\" height )\n"
 
             "\nDecodes an Omni transaction.\n"
 
@@ -51,6 +51,7 @@ Value omni_decodetransaction(const Array& params, bool fHelp)
             "       }\n"
             "       ,...\n"
             "     ]\n"
+            "3. height               (number, optional) the parsing block height (default: 0 for chain height)\n"
 
             "\nResult:\n"
             "{\n"
@@ -81,6 +82,11 @@ Value omni_decodetransaction(const Array& params, bool fHelp)
         InputsToView(prevTxsParsed, viewTemp);
     }
 
+    int blockHeight = 0;
+    if (params.size() > 2) {
+        blockHeight = params[2].get_int();
+    }
+
     Object txObj;
     int populateResult = -3331;
     {
@@ -88,7 +94,7 @@ Value omni_decodetransaction(const Array& params, bool fHelp)
         // temporarily switch global coins view cache for transaction inputs
         std::swap(view, viewTemp);
         // then get the results
-        populateResult = populateRPCTransactionObject(tx, 0, txObj);
+        populateResult = populateRPCTransactionObject(tx, 0, txObj, "", false, "", blockHeight);
         // and restore the original, unpolluted coins view cache
         std::swap(viewTemp, view);
     }

@@ -9,7 +9,7 @@ class CMPTransaction;
 class CTransaction;
 
 int populateRPCTransactionObject(const uint256& txid, json_spirit::Object& txobj, std::string filterAddress = "", bool extendedDetails = false, std::string extendedDetailsFilter = "");
-int populateRPCTransactionObject(const CTransaction& tx, const uint256& blockHash, json_spirit::Object& txobj, std::string filterAddress = "", bool extendedDetails = false, std::string extendedDetailsFilter = "");
+int populateRPCTransactionObject(const CTransaction& tx, const uint256& blockHash, json_spirit::Object& txobj, std::string filterAddress = "", bool extendedDetails = false, std::string extendedDetailsFilter = "", int blockHeight = 0);
 
 void populateRPCTypeInfo(CMPTransaction& mp_obj, json_spirit::Object& txobj, uint32_t txType, bool extendedDetails, std::string extendedDetailsFilter);
 
@@ -29,6 +29,7 @@ void populateRPCTypeCloseCrowdsale(CMPTransaction& omniObj, json_spirit::Object&
 void populateRPCTypeGrant(CMPTransaction& omniObj, json_spirit::Object& txobj);
 void populateRPCTypeRevoke(CMPTransaction& omniOobj, json_spirit::Object& txobj);
 void populateRPCTypeChangeIssuer(CMPTransaction& omniObj, json_spirit::Object& txobj);
+void populateRPCTypeActivation(CMPTransaction& omniObj, json_spirit::Object& txobj);
 
 void populateRPCExtendedTypeSendToOwners(const uint256 txid, std::string extendedDetailsFilter, json_spirit::Object& txobj);
 void populateRPCExtendedTypeMetaDExTrade(const uint256& txid, uint32_t propertyIdForSale, int64_t amountForSale, json_spirit::Object& txobj);

@@ -56,11 +56,13 @@ int populateRPCTransactionObject(const uint256& txid, Object& txobj, std::string
     return populateRPCTransactionObject(tx, blockHash, txobj, filterAddress, extendedDetails, extendedDetailsFilter);
 }
 
-int populateRPCTransactionObject(const CTransaction& tx, const uint256& blockHash, Object& txobj, std::string filterAddress, bool extendedDetails, std::string extendedDetailsFilter)
+int populateRPCTransactionObject(const CTransaction& tx, const uint256& blockHash, Object& txobj, std::string filterAddress, bool extendedDetails, std::string extendedDetailsFilter, int blockHeight)
 {
     int confirmations = 0;
     int64_t blockTime = 0;
-    int blockHeight = GetHeight();
+    if (blockHeight == 0) {
+        blockHeight = GetHeight();
+    }
 
     if (blockHash != 0) {
         CBlockIndex* pBlockIndex = GetBlockIndex(blockHash);
@@ -196,6 +198,9 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, Object& txobj, uint32_t txType,
             break;
         case MSC_TYPE_CHANGE_ISSUER_ADDRESS:
             populateRPCTypeChangeIssuer(mp_obj, txobj);
+            break;
+        case OMNICORE_MESSAGE_TYPE_ACTIVATION:
+            populateRPCTypeActivation(mp_obj, txobj);
             break;
     }
 }
@@ -469,6 +474,13 @@ void populateRPCTypeRevoke(CMPTransaction& omniObj, Object& txobj)
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
     txobj.push_back(Pair("divisible", isPropertyDivisible(propertyId)));
     txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
+}
+
+void populateRPCTypeActivation(CMPTransaction& omniObj, Object& txobj)
+{
+    txobj.push_back(Pair("featureid", (uint64_t) omniObj.getFeatureId()));
+    txobj.push_back(Pair("activationblock", (uint64_t) omniObj.getActivationBlock()));
+    txobj.push_back(Pair("minimumversion", (uint64_t) omniObj.getMinClientVersion()));
 }
 
 void populateRPCTypeChangeIssuer(CMPTransaction& omniObj, Object& txobj)
