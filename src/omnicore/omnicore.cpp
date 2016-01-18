@@ -69,6 +69,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <cmath>
 #include <fstream>
 #include <map>
 #include <set>
@@ -420,7 +421,7 @@ int64_t GetDevOmni(unsigned int nTime)
     const int64_t seconds_in_one_year = 31556926;
     const int64_t seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
     const long double years = static_cast<long double>(seconds_passed) / static_cast<long double>(seconds_in_one_year);
-    const long double part_available = pow(static_cast<long double>(2), years);    
+    const long double part_available = std::pow(static_cast<long double>(2), years);    
     const long double reward_remaining = static_cast<long double>(all_reward) / part_available;
     const long double available_reward = static_cast<long double>(all_reward) - reward_remaining;
     int64_t reward = rounduint64(available_reward);
