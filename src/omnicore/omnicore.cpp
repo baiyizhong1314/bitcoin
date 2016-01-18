@@ -417,20 +417,13 @@ int64_t GetDevOmni(unsigned int nTime)
 
     // spec constants:
     const int64_t all_reward = 5631623576222;
-    const double seconds_in_one_year = 31556926;
-    const double seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
-    const double years = seconds_passed / seconds_in_one_year;
-    const double part_available = 1 - pow(0.5, years);
-    const double available_reward = all_reward * part_available;
-    PrintToConsole("available_reward: %10.16f\n", available_reward);
+    const int64_t seconds_in_one_year = 31556926;
+    const int64_t seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
+    const long double years = static_cast<long double>(seconds_passed) / static_cast<long double>(seconds_in_one_year);
+    const long double part_available = pow(static_cast<long double>(2), years);    
+    const long double reward_remaining = static_cast<long double>(all_reward) / part_available;
+    const long double available_reward = static_cast<long double>(all_reward) - reward_remaining;
     int64_t reward = rounduint64(available_reward);
-
-    PrintToConsole("-------------------------------------\n");
-    PrintToConsole("nTime: %d\n", nTime);    
-    PrintToConsole("years: %f\n", years);
-    PrintToConsole("part_available: %f\n", part_available);
-    PrintToConsole("available_reward: %f\n", available_reward);
-    PrintToConsole("reward: %d\n", reward);
 
     return reward;
 }
