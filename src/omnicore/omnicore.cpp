@@ -421,7 +421,7 @@ int64_t GetDevOmni(unsigned int nTime)
     const double years = seconds_passed / seconds_in_one_year;
     const double part_available = 1 - pow(0.5, years);
     const double available_reward = all_reward * part_available;
-    if (msc_debug_exo) PrintToLog("Total available Exodus reward: %10.16f\n", available_reward);
+    PrintToConsole("available_reward: %10.16f\n", available_reward);
 
     int64_t reward = rounduint64(available_reward);
 
