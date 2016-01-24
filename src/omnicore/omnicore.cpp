@@ -69,7 +69,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <cmath>
 #include <fstream>
 #include <map>
 #include <set>
@@ -415,36 +414,15 @@ int64_t GetDevOmni(unsigned int nTime)
 {
     // do nothing if before end of fundraiser
     if (nTime < 1377993874) return 0;
-    
-    int64_t all_reward = 5631623576222;
-    int64_t seconds_in_one_year = 31556926;
-    int64_t seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
-    double years = static_cast<double>(seconds_passed) / static_cast<double>(seconds_in_one_year);
-    double part_available = 1.0 - std::pow(0.5, years);
-    double available_reward = static_cast<double>(all_reward) * part_available;
 
-    int64_t reward = rounduint64(static_cast<long double>(available_reward));
-
-/*
     const int64_t all_reward = 5631623576222;
     const double seconds_in_one_year = 31556926;
     const double seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
     const double years = seconds_passed / seconds_in_one_year;
     const double part_available = 1 - pow(0.5, years);
-    const double available_reward = all_reward * part_available;
+    const double available_reward = static_cast<double>(all_reward * part_available);
     int64_t reward = rounduint64(available_reward);
-*/
-/*
-    // spec constants:
-    const int64_t all_reward = 5631623576222;
-    const int64_t seconds_in_one_year = 31556926;
-    const int64_t seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
-    const long double years = static_cast<long double>(seconds_passed) / static_cast<long double>(seconds_in_one_year);
-    const long double part_available = std::pow(static_cast<long double>(2), years);    
-    const long double reward_remaining = static_cast<long double>(all_reward) / part_available;
-    const long double available_reward = static_cast<long double>(all_reward) - reward_remaining;
-    int64_t reward = rounduint64(available_reward);
-*/
+
     return reward;
 }
 
