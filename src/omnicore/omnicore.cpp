@@ -420,15 +420,22 @@ int64_t GetDevOmni(unsigned int nTime)
     int64_t seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
 
     double years = static_cast<double>(seconds_passed);
+    PrintToConsole("\nyears: %10.16f\n", years);
     years /= static_cast<double>(seconds_in_one_year);
+    PrintToConsole("years: %10.16f\n", years);
 
     double part_available = 1.0;
+    PrintToConsole("part_available: %10.16f\n", part_available);
     part_available -= pow(0.5, years);
+    PrintToConsole("part_available: %10.16f\n", part_available);
 
     double available_reward = static_cast<double>(all_reward);
+    PrintToConsole("available_reward: %10.16f\n", available_reward);
     available_reward *= part_available;
+    PrintToConsole("available_reward: %10.16f\n", available_reward);
 
     int64_t reward = rounduint64(available_reward);
+    PrintToConsole("reward: %d\n", reward);
 
     return reward;
 }
