@@ -415,13 +415,18 @@ int64_t GetDevOmni(unsigned int nTime)
     // do nothing if before end of fundraiser
     if (nTime < 1377993874) return 0;
 
-    const int64_t all_reward = 5631623576222;
-    const double seconds_in_one_year = 31556926;
-    const double seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
-    const double years = seconds_passed / seconds_in_one_year;
-    const double part_available = 1 - pow(0.5, years);
-    const double available_reward = all_reward * part_available;
-    PrintToConsole("available_reward: %10.16f\n", available_reward);
+    int64_t all_reward = 5631623576222;
+    int64_t seconds_in_one_year = 31556926;
+    int64_t seconds_passed = nTime - 1377993874; // exodus bootstrap deadline
+
+    double years = static_cast<double>(seconds_passed);
+    years /= static_cast<double>(seconds_in_one_year);
+
+    double part_available = 1.0;
+    part_available -= pow(0.5, years);
+
+    double available_reward = static_cast<double>(all_reward);
+    available_reward *= part_available;
 
     int64_t reward = rounduint64(available_reward);
 
