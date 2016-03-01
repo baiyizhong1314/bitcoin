@@ -205,7 +205,7 @@ public:
     /** Resets and clears all values. */
     void SetNull()
     {
-        txid = 0;
+        txid.SetNull();
         block = -1;
         blockTime = 0;
         tx_idx = 0;

@@ -1,9 +1,9 @@
 #ifndef OMNICORE_RPCRAWTX_H
 #define OMNICORE_RPCRAWTX_H
 
-#include "json/json_spirit_value.h"
+#include <univalue.h>
 
-json_spirit::Value omni_decodetransaction(const json_spirit::Array& params, bool fHelp);
+UniValue omni_decodetransaction(const UniValue& params, bool fHelp);
 
 
 

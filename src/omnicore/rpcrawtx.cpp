@@ -14,7 +14,7 @@
 #include "sync.h"
 #include "uint256.h"
 
-#include "json/json_spirit_value.h"
+#include <univalue.h>
 
 #include <stdint.h>
 #include <stdexcept>
@@ -25,10 +25,7 @@ extern CCriticalSection cs_main;
 using mastercore::cs_tx_cache;
 using mastercore::view;
 
-using namespace json_spirit;
-
-
-Value omni_decodetransaction(const Array& params, bool fHelp)
+UniValue omni_decodetransaction(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 3)
         throw std::runtime_error(
@@ -89,14 +86,14 @@ Value omni_decodetransaction(const Array& params, bool fHelp)
         blockHeight = params[2].get_int();
     }
 
-    Object txObj;
+    UniValue txObj(UniValue::VOBJ);
     int populateResult = -3331;
     {
         LOCK2(cs_main, cs_tx_cache);
         // temporarily switch global coins view cache for transaction inputs
         std::swap(view, viewTemp);
         // then get the results
-        populateResult = populateRPCTransactionObject(tx, 0, txObj, "", false, "", blockHeight);
+        populateResult = populateRPCTransactionObject(tx, uint256(), txObj, "", false, "", blockHeight);
         // and restore the original, unpolluted coins view cache
         std::swap(viewTemp, view);
     }
@@ -106,7 +103,7 @@ Value omni_decodetransaction(const Array& params, bool fHelp)
     return txObj;
 }
 
-Value omni_createrawtx_opreturn(const Array& params, bool fHelp)
+UniValue omni_createrawtx_opreturn(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw std::runtime_error(
@@ -141,7 +138,7 @@ Value omni_createrawtx_opreturn(const Array& params, bool fHelp)
     return EncodeHexTx(tx);
 }
 
-Value omni_createrawtx_multisig(const Array& params, bool fHelp)
+UniValue omni_createrawtx_multisig(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 4)
         throw std::runtime_error(
@@ -180,7 +177,7 @@ Value omni_createrawtx_multisig(const Array& params, bool fHelp)
     return EncodeHexTx(tx);
 }
 
-Value omni_createrawtx_input(const Array& params, bool fHelp)
+UniValue omni_createrawtx_input(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw std::runtime_error(
@@ -215,7 +212,7 @@ Value omni_createrawtx_input(const Array& params, bool fHelp)
     return EncodeHexTx(tx);
 }
 
-Value omni_createrawtx_reference(const Array& params, bool fHelp)
+UniValue omni_createrawtx_reference(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 3)
         throw std::runtime_error(
@@ -252,7 +249,7 @@ Value omni_createrawtx_reference(const Array& params, bool fHelp)
     return EncodeHexTx(tx);
 }
 
-Value omni_createrawtx_change(const Array& params, bool fHelp)
+UniValue omni_createrawtx_change(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 4 || params.size() > 5)
         throw std::runtime_error(
@@ -300,7 +297,7 @@ Value omni_createrawtx_change(const Array& params, bool fHelp)
     std::vector<PrevTxsEntry> prevTxsParsed = ParsePrevTxs(params[1]);
     std::string destination = ParseAddress(params[2]);
     int64_t txFee = AmountFromValue(params[3]);
-    uint32_t nOut = params.size() > 4 ? params[4].get_uint64() : 0;
+    uint32_t nOut = params.size() > 4 ? params[4].get_int64() : 0;
 
     // use a dummy coins view to store the user provided transaction inputs
     CCoinsView viewDummy;

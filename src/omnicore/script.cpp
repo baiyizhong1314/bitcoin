@@ -27,7 +27,7 @@ int64_t GetDustThreshold(const CScript& scriptPubKey)
     // The total size is based on a typical scriptSig size of 148 byte,
     // 8 byte accounted for the size of output value and the serialized
     // size of scriptPubKey.
-    size_t nSize = ::GetSerializeSize(scriptPubKey, SER_DISK, 0) + 156u;
+    size_t nSize = scriptPubKey.size() + 156u;
 
     // The minimum relay fee dictates a threshold value under which a
     // transaction won't be relayed.
@@ -132,7 +132,7 @@ bool SafeSolver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<st
     // So long as script passes the IsUnspendable() test and all but the first
     // byte passes the IsPushOnly() test we don't care what exactly is in the
     // script.
-    if (scriptPubKey.size() >= 2 && scriptPubKey.at(0) == OP_RETURN)
+    if (scriptPubKey.size() >= 2 && scriptPubKey[0] == OP_RETURN)
     {
         CScript script(scriptPubKey.begin()+1, scriptPubKey.end());
         if (script.IsPushOnly()) {

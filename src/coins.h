@@ -396,6 +396,7 @@ protected:
 
 public:
     CCoinsViewCache(CCoinsView *baseIn);
+    CCoinsViewCache(const CCoinsViewCache &);
     ~CCoinsViewCache();
 
     // Standard CCoinsView methods
@@ -487,7 +488,7 @@ private:
     /**
      * By making the copy constructor private, we prevent accidentally using it when one intends to create a cache on top of a base cache.
      */
-    CCoinsViewCache(const CCoinsViewCache &);
+    //CCoinsViewCache(const CCoinsViewCache &); //TODO
 };
 
 #endif // BITCOIN_COINS_H

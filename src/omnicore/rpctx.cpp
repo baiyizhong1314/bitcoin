@@ -21,21 +21,22 @@
 #include "rpcserver.h"
 #include "sync.h"
 #ifdef ENABLE_WALLET
-#include "wallet.h"
+#include "wallet/wallet.h"
 #endif
 
-#include "json/json_spirit_value.h"
+#include "univalue.h"
 
 #include <stdint.h>
 #include <stdexcept>
 #include <string>
 
 using std::runtime_error;
-using namespace json_spirit;
 using namespace mastercore;
 
+static bool fPayAtLeastCustomFee = false; // TODO: CHECK
+
 // omni_send - simple send
-Value omni_send(const Array& params, bool fHelp)
+UniValue omni_send(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 4 || params.size() > 6)
         throw runtime_error(
@@ -94,7 +95,7 @@ Value omni_send(const Array& params, bool fHelp)
 }
 
 // omni_sendall - send all
-Value omni_sendall(const Array& params, bool fHelp)
+UniValue omni_sendall(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 5)
         throw runtime_error(
@@ -149,7 +150,7 @@ Value omni_sendall(const Array& params, bool fHelp)
 }
 
 // omni_senddexsell - DEx sell offer
-Value omni_senddexsell(const Array& params, bool fHelp)
+UniValue omni_senddexsell(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 7)
         throw runtime_error(
@@ -239,7 +240,7 @@ Value omni_senddexsell(const Array& params, bool fHelp)
 }
 
 // omni_senddexaccept - DEx accept offer
-Value omni_senddexaccept(const Array& params, bool fHelp)
+UniValue omni_senddexaccept(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 4 || params.size() > 5)
         throw runtime_error(
@@ -324,7 +325,7 @@ Value omni_senddexaccept(const Array& params, bool fHelp)
 }
 
 // omni_sendissuancecrowdsale - Issue new property with crowdsale
-Value omni_sendissuancecrowdsale(const Array& params, bool fHelp)
+UniValue omni_sendissuancecrowdsale(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 14)
         throw runtime_error(
@@ -398,7 +399,7 @@ Value omni_sendissuancecrowdsale(const Array& params, bool fHelp)
 }
 
 // omni_sendissuancecfixed - Issue new property with fixed amount
-Value omni_sendissuancefixed(const Array& params, bool fHelp)
+UniValue omni_sendissuancefixed(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 10)
         throw runtime_error(
@@ -462,7 +463,7 @@ Value omni_sendissuancefixed(const Array& params, bool fHelp)
 }
 
 // omni_sendissuancemanaged - Issue new property with manual issuance (grant/revoke)
-Value omni_sendissuancemanaged(const Array& params, bool fHelp)
+UniValue omni_sendissuancemanaged(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 9)
         throw runtime_error(
@@ -524,7 +525,7 @@ Value omni_sendissuancemanaged(const Array& params, bool fHelp)
 }
 
 // omni_sendsto - Send to owners
-Value omni_sendsto(const Array& params, bool fHelp)
+UniValue omni_sendsto(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 4)
         throw runtime_error(
@@ -577,7 +578,7 @@ Value omni_sendsto(const Array& params, bool fHelp)
 }
 
 // omni_sendgrant - Grant tokens
-Value omni_sendgrant(const Array& params, bool fHelp)
+UniValue omni_sendgrant(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 4 || params.size() > 5)
         throw runtime_error(
@@ -633,7 +634,7 @@ Value omni_sendgrant(const Array& params, bool fHelp)
 }
 
 // omni_sendrevoke - Revoke tokens
-Value omni_sendrevoke(const Array& params, bool fHelp)
+UniValue omni_sendrevoke(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 4)
         throw runtime_error(
@@ -688,7 +689,7 @@ Value omni_sendrevoke(const Array& params, bool fHelp)
 }
 
 // omni_sendclosecrowdsale - Close an active crowdsale
-Value omni_sendclosecrowdsale(const Array& params, bool fHelp)
+UniValue omni_sendclosecrowdsale(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
@@ -739,7 +740,7 @@ Value omni_sendclosecrowdsale(const Array& params, bool fHelp)
 }
 
 // trade_MP - MetaDEx trade
-Value trade_MP(const Array& params, bool fHelp)
+UniValue trade_MP(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 6)
         throw runtime_error(
@@ -751,7 +752,7 @@ Value trade_MP(const Array& params, bool fHelp)
             " - sendcanceltradebypair_OMNI\n"
         );
 
-    Array values;
+    UniValue values(UniValue::VARR);
     uint8_t action = ParseMetaDExAction(params[5]);
 
     // Forward to the new commands, based on action value
@@ -802,7 +803,7 @@ Value trade_MP(const Array& params, bool fHelp)
 }
 
 // Send a new MetaDEx trade
-Value omni_sendtrade(const Array& params, bool fHelp)
+UniValue omni_sendtrade(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 5)
         throw runtime_error(
@@ -861,7 +862,7 @@ Value omni_sendtrade(const Array& params, bool fHelp)
 }
 
 // Cancel MetaDEx by price
-Value omni_sendcanceltradesbyprice(const Array& params, bool fHelp)
+UniValue omni_sendcanceltradesbyprice(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 5)
         throw runtime_error(
@@ -920,7 +921,7 @@ Value omni_sendcanceltradesbyprice(const Array& params, bool fHelp)
 }
 
 // Cancel MetaDEx orders by currency pair
-Value omni_sendcanceltradesbypair(const Array& params, bool fHelp)
+UniValue omni_sendcanceltradesbypair(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
@@ -975,7 +976,7 @@ Value omni_sendcanceltradesbypair(const Array& params, bool fHelp)
 }
 
 // Cancel MetaDEx orders by ecosystem
-Value omni_sendcancelalltrades(const Array& params, bool fHelp)
+UniValue omni_sendcancelalltrades(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
@@ -1024,7 +1025,7 @@ Value omni_sendcancelalltrades(const Array& params, bool fHelp)
 }
 
 // omni_sendchangeissuer - Change issuer for a property
-Value omni_sendchangeissuer(const Array& params, bool fHelp)
+UniValue omni_sendchangeissuer(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
@@ -1075,7 +1076,7 @@ Value omni_sendchangeissuer(const Array& params, bool fHelp)
     }
 }
 
-Value omni_sendactivation(const Array& params, bool fHelp)
+UniValue omni_sendactivation(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 4)
         throw runtime_error(
@@ -1096,9 +1097,9 @@ Value omni_sendactivation(const Array& params, bool fHelp)
 
     // obtain parameters & info
     std::string fromAddress = ParseAddress(params[0]);
-    uint16_t featureId = params[1].get_uint64();
-    uint32_t activationBlock = params[2].get_uint64();
-    uint32_t minClientVersion = params[3].get_uint64();
+    uint16_t featureId = params[1].get_int64();
+    uint32_t activationBlock = params[2].get_int64();
+    uint32_t minClientVersion = params[3].get_int64();
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_ActivateFeature(featureId, activationBlock, minClientVersion);
@@ -1120,7 +1121,7 @@ Value omni_sendactivation(const Array& params, bool fHelp)
     }
 }
 
-Value omni_sendalert(const Array& params, bool fHelp)
+UniValue omni_sendalert(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 4)
         throw runtime_error(
