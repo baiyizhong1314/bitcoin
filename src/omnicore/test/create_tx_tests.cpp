@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/createtx.h"
 
 #include "base58.h"
@@ -19,7 +21,7 @@
 extern CFeeRate minRelayTxFee;
 static CFeeRate minRelayTxFeeOriginal = minRelayTxFee;
 
-BOOST_AUTO_TEST_SUITE(omnicore_create_tx_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_create_tx_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(txbuilder_empty)
 {

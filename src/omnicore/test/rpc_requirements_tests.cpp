@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/rpcrequirements.h"
 
 #include <univalue.h>
@@ -8,7 +10,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(omnicore_rpc_requirements_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_rpc_requirements_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(rpcrequirements_universal)
 {

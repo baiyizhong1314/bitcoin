@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/test/utils_tx.h"
 
 #include "omnicore/omnicore.h"
@@ -20,7 +22,7 @@
 
 using namespace mastercore;
 
-BOOST_AUTO_TEST_SUITE(omnicore_sender_bycontribution_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_sender_bycontribution_tests, TestingSetup)
 
 // Forward declarations
 static CTransaction TxClassB(const std::vector<CTxOut>& txInputs);

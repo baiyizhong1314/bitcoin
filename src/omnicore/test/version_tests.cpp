@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/version.h"
 
 #include "config/bitcoin-config.h"
@@ -6,7 +8,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(omnicore_version_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_version_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(version_comparison)
 {

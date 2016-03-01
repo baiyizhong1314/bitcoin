@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/script.h"
 
 #include "script/script.h"
@@ -10,7 +12,7 @@
 /** To be set in the tests. */
 extern unsigned nMaxDatacarrierBytes;
 
-BOOST_AUTO_TEST_SUITE(omnicore_script_solver_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_script_solver_tests, TestingSetup)
 
 /** Checks whether the custom solver is unaffected by user settings. */
 static void CheckOutputType(const CScript& script, txnouttype outTypeExpected)

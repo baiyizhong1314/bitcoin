@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/createtx.h"
 #include "omnicore/rpcvalues.h"
 
@@ -14,7 +16,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(omnicore_rpc_value_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_rpc_value_tests, TestingSetup)
 
 static Value ValueFromString(const std::string& str)
 {

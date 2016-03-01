@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/sp.h"
 
 #include <stdint.h>
@@ -6,7 +8,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(omnicore_crowdsale_participation_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_crowdsale_participation_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(overpayment_close)
 {

@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/utils.h"
 
 #include <string>
@@ -5,7 +7,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(omnicore_obfuscation_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_obfuscation_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(prepare_obfuscated_hashes)
 {

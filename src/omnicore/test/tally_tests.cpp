@@ -1,10 +1,12 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/tally.h"
 
 #include <stdint.h>
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(omnicore_tally_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_tally_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(empty_tally)
 {

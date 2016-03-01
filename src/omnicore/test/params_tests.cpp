@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/omnicore.h"
 #include "omnicore/rules.h"
 
@@ -10,7 +12,7 @@
 
 using namespace mastercore;
 
-BOOST_AUTO_TEST_SUITE(omnicore_params_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_params_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(get_params)
 {

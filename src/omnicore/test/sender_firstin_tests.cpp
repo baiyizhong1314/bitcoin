@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/test/utils_tx.h"
 
 #include "omnicore/omnicore.h"
@@ -20,7 +22,7 @@
 
 using namespace mastercore;
 
-BOOST_AUTO_TEST_SUITE(omnicore_sender_firstin_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_sender_firstin_tests, TestingSetup)
 
 /** Creates a dummy class C transaction with the given inputs. */
 static CTransaction TxClassC(const std::vector<CTxOut>& txInputs)

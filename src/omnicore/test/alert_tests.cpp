@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/notifications.h"
 #include "omnicore/version.h"
 
@@ -17,7 +19,7 @@ using namespace mastercore;
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
 
-BOOST_AUTO_TEST_SUITE(omnicore_alert_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_alert_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(alert_positive_authorization)
 {

@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/uint256_extensions.h"
 
 #include "uint256.h"
@@ -8,7 +10,7 @@
 
 using namespace mastercore;
 
-BOOST_AUTO_TEST_SUITE(omnicore_uint256_extensions_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_uint256_extensions_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(uint256_from_uint64_t)
 {

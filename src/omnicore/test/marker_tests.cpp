@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/test/utils_tx.h"
 
 #include "omnicore/omnicore.h"
@@ -12,7 +14,7 @@
 
 using namespace mastercore;
 
-BOOST_AUTO_TEST_SUITE(omnicore_marker_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_marker_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(class_no_marker)
 {

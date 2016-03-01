@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "random.h"
 #include "sync.h"
 #include "utiltime.h"
@@ -27,7 +29,7 @@ static void plusOneThread(int nIterations)
     }
 }
 
-BOOST_AUTO_TEST_SUITE(omnicore_lock_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_lock_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(multithread_locking)
 {

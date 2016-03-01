@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/script.h"
 
 #include "base58.h"
@@ -10,7 +12,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(omnicore_script_extraction_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_script_extraction_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(extract_pubkey_test)
 {

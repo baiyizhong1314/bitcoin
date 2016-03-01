@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/convert.h"
 
 #include <stdint.h>
@@ -6,7 +8,7 @@
 
 using namespace mastercore;
 
-BOOST_AUTO_TEST_SUITE(omnicore_swapbyteorder_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_swapbyteorder_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(swapbyteorder_cycle)
 {

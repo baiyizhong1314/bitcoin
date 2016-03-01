@@ -1,3 +1,5 @@
+#include "test/test_bitcoin.h"
+
 #include "omnicore/consensushash.h"
 #include "omnicore/dex.h"
 #include "omnicore/mdex.h"
@@ -28,7 +30,7 @@ extern void clear_all_state();
 
 using namespace mastercore;
 
-BOOST_AUTO_TEST_SUITE(omnicore_checkpoint_tests)
+BOOST_FIXTURE_TEST_SUITE(omnicore_checkpoint_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(consensus_string_tally)
 {
