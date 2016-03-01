@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(input_scripthash_testnet)
     SelectParams(CBaseChainParams::TESTNET);
     BOOST_CHECK(IsAllowedInputType(TX_SCRIPTHASH, 0));
     BOOST_CHECK(IsAllowedInputType(TX_SCRIPTHASH, std::numeric_limits<int>::max()));
-    SelectParams(CBaseChainParams::UNITTEST);
+    SelectParams(CBaseChainParams::MAIN);
 }
 
 BOOST_AUTO_TEST_CASE(input_multisig)
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(output_scripthash_testnet)
     SelectParams(CBaseChainParams::TESTNET);
     BOOST_CHECK(IsAllowedOutputType(TX_SCRIPTHASH, 0));
     BOOST_CHECK(IsAllowedOutputType(TX_SCRIPTHASH, std::numeric_limits<int>::max()));
-    SelectParams(CBaseChainParams::UNITTEST);
+    SelectParams(CBaseChainParams::MAIN);
 }
 
 BOOST_AUTO_TEST_CASE(output_multisig)
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(output_nulldata_testnet)
     SelectParams(CBaseChainParams::TESTNET);
     BOOST_CHECK(IsAllowedOutputType(TX_NULL_DATA, 0));
     BOOST_CHECK(IsAllowedOutputType(TX_NULL_DATA, std::numeric_limits<int>::max()));
-    SelectParams(CBaseChainParams::UNITTEST);
+    SelectParams(CBaseChainParams::MAIN);
 }
 
 

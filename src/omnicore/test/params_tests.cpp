@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(ecosystem_restrictions_test)
     BOOST_CHECK(!IsTransactionTypeAllowed(0, OMNI_PROPERTY_MSC, MSC_TYPE_OFFER_ACCEPT_A_BET, MP_TX_PKT_V0));
     BOOST_CHECK(IsTransactionTypeAllowed(0, OMNI_PROPERTY_TMSC, MSC_TYPE_OFFER_ACCEPT_A_BET, MP_TX_PKT_V0));
     // Restore original
-    SelectParams(CBaseChainParams::UNITTEST);
+    SelectParams(CBaseChainParams::MAIN);
 }
 
 BOOST_AUTO_TEST_CASE(update_feature_network)

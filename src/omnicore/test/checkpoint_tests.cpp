@@ -55,14 +55,14 @@ BOOST_AUTO_TEST_CASE(consensus_string_offer)
     BOOST_CHECK_EQUAL("0000000000000000000000000000000000000000000000000000000000000000|3CwZ7FiQ4MqBenRdCkjjc41M5bnoKQGC2b|0|0|0|0|0",
             GenerateConsensusString(offerA, "3CwZ7FiQ4MqBenRdCkjjc41M5bnoKQGC2b"));
 
-    CMPOffer offerB(340000, 3000, 2, 100000, 1000, 10, uint256("3c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7d"));
+    CMPOffer offerB(340000, 3000, 2, 100000, 1000, 10, uint256S("3c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7d"));
     BOOST_CHECK_EQUAL("3c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7d|1HG3s4Ext3sTqBTHrgftyUzG3cvx5ZbPCj|2|3000|100000|1000|10",
             GenerateConsensusString(offerB, "1HG3s4Ext3sTqBTHrgftyUzG3cvx5ZbPCj"));
 }
 
 BOOST_AUTO_TEST_CASE(consensus_string_accept)
 {
-    CMPAccept accept(1234, 1000, 350000, 10, 2, 2000, 4000, uint256("2c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7b"));
+    CMPAccept accept(1234, 1000, 350000, 10, 2, 2000, 4000, uint256S("2c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7b"));
     BOOST_CHECK_EQUAL("2c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7b|3CwZ7FiQ4MqBenRdCkjjc41M5bnoKQGC2b|1234|1000|350000",
             GenerateConsensusString(accept, "3CwZ7FiQ4MqBenRdCkjjc41M5bnoKQGC2b"));
 }
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(consensus_string_mdex)
             GenerateConsensusString(tradeA));
 
     CMPMetaDEx tradeB("1PxejjeWZc9ZHph7A3SYDo2sk2Up4AcysH", 395000, 31, 1000000, 1, 2000000,
-            uint256("2c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7d"), 1, 1, 900000);
+            uint256S("2c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7d"), 1, 1, 900000);
     BOOST_CHECK_EQUAL("2c9a055899147b03b2c5240a020c1f94d243a834ecc06ab8cfa504ee29d07b7d|1PxejjeWZc9ZHph7A3SYDo2sk2Up4AcysH|31|1000000|1|2000000|900000",
             GenerateConsensusString(tradeB));
 }
@@ -110,20 +110,20 @@ BOOST_AUTO_TEST_CASE(verify_checkpoints)
     clear_all_state();
 
     // Not a checkpoint (so we assume it's valid)
-    BOOST_CHECK(VerifyCheckpoint(1, uint256("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048")));
+    BOOST_CHECK(VerifyCheckpoint(1, uint256S("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048")));
     // Valid checkpoint
-    BOOST_CHECK(VerifyCheckpoint(0, uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
+    BOOST_CHECK(VerifyCheckpoint(0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
     // Valid checkpoint, but block hash mismatch
-    BOOST_CHECK(!VerifyCheckpoint(0, uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce260")));
+    BOOST_CHECK(!VerifyCheckpoint(0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce260")));
 
     // Pollute the state (and therefore hash)
     BOOST_CHECK(update_tally_map("3CwZ7FiQ4MqBenRdCkjjc41M5bnoKQGC2b", 1, 12345, BALANCE));
     // Checkpoint mismatch, due to the state pollution
-    BOOST_CHECK(!VerifyCheckpoint(0, uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
+    BOOST_CHECK(!VerifyCheckpoint(0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
 
     // Cleanup
     clear_all_state();
-    BOOST_CHECK(VerifyCheckpoint(0, uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
+    BOOST_CHECK(VerifyCheckpoint(0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
 }
 
 
