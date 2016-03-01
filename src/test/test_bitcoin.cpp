@@ -32,6 +32,7 @@ CWallet* pwalletMain;
 
 extern bool fPrintToConsole;
 extern void noui_connect();
+extern int mastercore_shutdown();
 
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName)
 {
@@ -80,6 +81,7 @@ TestingSetup::~TestingSetup()
         UnregisterNodeSignals(GetNodeSignals());
         threadGroup.interrupt_all();
         threadGroup.join_all();
+        mastercore_shutdown();
 #ifdef ENABLE_WALLET
         UnregisterValidationInterface(pwalletMain);
         delete pwalletMain;

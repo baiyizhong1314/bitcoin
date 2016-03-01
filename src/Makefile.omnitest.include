@@ -33,9 +33,6 @@ OMNICORE_TEST_CPP = \
   omnicore/test/uint256_extensions_tests.cpp \
   omnicore/test/utils_tx.cpp \
   omnicore/test/version_tests.cpp
-# TODO
-# omnicore/test/rpc_requirements_tests.cpp \
-# omnicore/test/rpc_value_tests.cpp \
 
 BITCOIN_TESTS += \
   $(OMNICORE_TEST_CPP) \

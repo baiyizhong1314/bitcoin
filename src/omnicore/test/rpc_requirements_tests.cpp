@@ -1,14 +1,12 @@
 #include "omnicore/rpcrequirements.h"
 
-#include "json/json_spirit_value.h"
+#include <univalue.h>
 
 #include <stdint.h>
 #include <limits>
 #include <string>
 
 #include <boost/test/unit_test.hpp>
-
-using json_spirit::Object;
 
 BOOST_AUTO_TEST_SUITE(omnicore_rpc_requirements_tests)
 
@@ -40,29 +38,29 @@ BOOST_AUTO_TEST_CASE(rpcrequirements_universal_failure)
     // no previous transactions.
     // Some of the checks fail for unrelated reasons, such as the DEx payment window or the
     // fee check: the offers don't exist, which also raises exceptions.
-    BOOST_CHECK_THROW(RequireBalance("1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P", 2, int64_t(9223372036854775807LL)), Object);
-    BOOST_CHECK_THROW(RequirePrimaryToken(0), Object);
-    BOOST_CHECK_THROW(RequirePrimaryToken(31), Object);
-    BOOST_CHECK_THROW(RequirePropertyName(""), Object);
-    BOOST_CHECK_THROW(RequireExistingProperty(uint32_t(2147483647)), Object); // last main identifier that may be created
-    BOOST_CHECK_THROW(RequireExistingProperty(uint32_t(4294967295U)), Object); // last test identifier that may be created
-    BOOST_CHECK_THROW(RequireSameEcosystem(2147483650U, 4294967295U), Object);
-    BOOST_CHECK_THROW(RequireDifferentIds(4200000000U, 4200000000U), Object);
-    BOOST_CHECK_THROW(RequireCrowdsale(uint32_t(2147483647)), Object);
-    BOOST_CHECK_THROW(RequireCrowdsale(uint32_t(4294967295U)), Object);
-    BOOST_CHECK_THROW(RequireActiveCrowdsale(uint32_t(2147483647)), Object);
-    BOOST_CHECK_THROW(RequireActiveCrowdsale(uint32_t(4294967295U)), Object);
-    BOOST_CHECK_THROW(RequireManagedProperty(uint32_t(2147483647)), Object);
-    BOOST_CHECK_THROW(RequireManagedProperty(uint32_t(4294967295U)), Object);
-    BOOST_CHECK_THROW(RequireTokenIssuer("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", uint32_t(2147483647)), Object);
-    BOOST_CHECK_THROW(RequireSaneDExPaymentWindow("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", uint32_t(2147483647)), Object);
-    BOOST_CHECK_THROW(RequireSaneDExFee("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", uint32_t(2147483647)), Object);
-    BOOST_CHECK_THROW(RequireMatchingDExOffer("36fKL6YuaCKkWDkh4gce2E3PsucmDEyrR9", 3), Object);
-    BOOST_CHECK_THROW(RequireMatchingDExOffer("1388enJtLbowR6LRQQUTjptWuChirfrhza", 7), Object);
-    BOOST_CHECK_THROW(RequireSaneReferenceAmount(1000001), Object);
-    BOOST_CHECK_THROW(RequireSaneReferenceAmount(int64_t(210000000000000L)), Object);
-    BOOST_CHECK_THROW(RequireHeightInChain(-1), Object);
-    BOOST_CHECK_THROW(RequireHeightInChain(std::numeric_limits<int>::max()), Object);
+    BOOST_CHECK_THROW(RequireBalance("1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P", 2, int64_t(9223372036854775807LL)), UniValue);
+    BOOST_CHECK_THROW(RequirePrimaryToken(0), UniValue);
+    BOOST_CHECK_THROW(RequirePrimaryToken(31), UniValue);
+    BOOST_CHECK_THROW(RequirePropertyName(""), UniValue);
+    BOOST_CHECK_THROW(RequireExistingProperty(uint32_t(2147483647)), UniValue); // last main identifier that may be created
+    BOOST_CHECK_THROW(RequireExistingProperty(uint32_t(4294967295U)), UniValue); // last test identifier that may be created
+    BOOST_CHECK_THROW(RequireSameEcosystem(2147483650U, 4294967295U), UniValue);
+    BOOST_CHECK_THROW(RequireDifferentIds(4200000000U, 4200000000U), UniValue);
+    BOOST_CHECK_THROW(RequireCrowdsale(uint32_t(2147483647)), UniValue);
+    BOOST_CHECK_THROW(RequireCrowdsale(uint32_t(4294967295U)), UniValue);
+    BOOST_CHECK_THROW(RequireActiveCrowdsale(uint32_t(2147483647)), UniValue);
+    BOOST_CHECK_THROW(RequireActiveCrowdsale(uint32_t(4294967295U)), UniValue);
+    BOOST_CHECK_THROW(RequireManagedProperty(uint32_t(2147483647)), UniValue);
+    BOOST_CHECK_THROW(RequireManagedProperty(uint32_t(4294967295U)), UniValue);
+    BOOST_CHECK_THROW(RequireTokenIssuer("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", uint32_t(2147483647)), UniValue);
+    BOOST_CHECK_THROW(RequireSaneDExPaymentWindow("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", uint32_t(2147483647)), UniValue);
+    BOOST_CHECK_THROW(RequireSaneDExFee("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", uint32_t(2147483647)), UniValue);
+    BOOST_CHECK_THROW(RequireMatchingDExOffer("36fKL6YuaCKkWDkh4gce2E3PsucmDEyrR9", 3), UniValue);
+    BOOST_CHECK_THROW(RequireMatchingDExOffer("1388enJtLbowR6LRQQUTjptWuChirfrhza", 7), UniValue);
+    BOOST_CHECK_THROW(RequireSaneReferenceAmount(1000001), UniValue);
+    BOOST_CHECK_THROW(RequireSaneReferenceAmount(int64_t(210000000000000L)), UniValue);
+    BOOST_CHECK_THROW(RequireHeightInChain(-1), UniValue);
+    BOOST_CHECK_THROW(RequireHeightInChain(std::numeric_limits<int>::max()), UniValue);
 }
 
 

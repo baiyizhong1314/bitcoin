@@ -7,15 +7,12 @@
 #include "script/script.h"
 #include "utilstrencodings.h"
 
-#include "json/json_spirit_value.h"
+#include <univalue.h>
 
 #include <stdint.h>
 #include <string>
 
 #include <boost/test/unit_test.hpp>
-
-using json_spirit::Value;
-using json_spirit::Object;
 
 BOOST_AUTO_TEST_SUITE(omnicore_rpc_value_tests)
 
