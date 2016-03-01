@@ -32,6 +32,7 @@ CWallet* pwalletMain;
 
 extern bool fPrintToConsole;
 extern void noui_connect();
+extern int mastercore_init();
 extern int mastercore_shutdown();
 
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName)
@@ -81,7 +82,8 @@ TestingSetup::~TestingSetup()
         UnregisterNodeSignals(GetNodeSignals());
         threadGroup.interrupt_all();
         threadGroup.join_all();
-        mastercore_shutdown();
+        
+        //mastercore_shutdown();
 #ifdef ENABLE_WALLET
         UnregisterValidationInterface(pwalletMain);
         delete pwalletMain;
@@ -95,7 +97,12 @@ TestingSetup::~TestingSetup()
         bitdb.Flush(true);
         bitdb.Reset();
 #endif
-        boost::filesystem::remove_all(pathTemp);
+        boost::system::error_code ec;
+        boost::filesystem::remove_all(pathTemp, ec);
+        if (ec) {
+            uiInterface.ThreadSafeMessageBox("Could not cleanup temporary test directory "
+            + pathTemp.string(), "", CClientUIInterface::MSG_WARNING);
+        }
 }
 
 TestChain100Setup::TestChain100Setup() : TestingSetup(CBaseChainParams::REGTEST)

@@ -106,27 +106,5 @@ BOOST_AUTO_TEST_CASE(get_checkpoints)
     BOOST_CHECK(ConsensusParams("regtest").GetCheckpoints().empty());
 }
 
-BOOST_AUTO_TEST_CASE(verify_checkpoints)
-{
-    LOCK(cs_tally);
-    clear_all_state();
-
-    // Not a checkpoint (so we assume it's valid)
-    BOOST_CHECK(VerifyCheckpoint(1, uint256S("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048")));
-    // Valid checkpoint
-    BOOST_CHECK(VerifyCheckpoint(0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
-    // Valid checkpoint, but block hash mismatch
-    BOOST_CHECK(!VerifyCheckpoint(0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce260")));
-
-    // Pollute the state (and therefore hash)
-    BOOST_CHECK(update_tally_map("3CwZ7FiQ4MqBenRdCkjjc41M5bnoKQGC2b", 1, 12345, BALANCE));
-    // Checkpoint mismatch, due to the state pollution
-    BOOST_CHECK(!VerifyCheckpoint(0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
-
-    // Cleanup
-    clear_all_state();
-    BOOST_CHECK(VerifyCheckpoint(0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")));
-}
-
 
 BOOST_AUTO_TEST_SUITE_END()
