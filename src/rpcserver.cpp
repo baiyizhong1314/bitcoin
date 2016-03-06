@@ -374,6 +374,99 @@ static const CRPCCommand vRPCCommands[] =
     { "wallet",             "walletpassphrasechange", &walletpassphrasechange, true  },
     { "wallet",             "walletpassphrase",       &walletpassphrase,       true  },
 #endif // ENABLE_WALLET
+
+    /* Omni Core data retrieval calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE */
+    { "omni layer (data retrieval)",         "omni_getinfo",                    &omni_getinfo,                    true  },
+    { "omni layer (data retrieval)",         "omni_getactivations",             &omni_getactivations,             true  },
+    { "omni layer (data retrieval)",         "omni_getallbalancesforid",        &omni_getallbalancesforid,        false },
+    { "omni layer (data retrieval)",         "omni_getbalance",                 &omni_getbalance,                 false },
+    { "omni layer (data retrieval)",         "omni_gettransaction",             &omni_gettransaction,             false },
+    { "omni layer (data retrieval)",         "omni_getproperty",                &omni_getproperty,                false },
+    { "omni layer (data retrieval)",         "omni_listproperties",             &omni_listproperties,             false },
+    { "omni layer (data retrieval)",         "omni_getcrowdsale",               &omni_getcrowdsale,               false },
+    { "omni layer (data retrieval)",         "omni_getgrants",                  &omni_getgrants,                  false },
+    { "omni layer (data retrieval)",         "omni_getactivedexsells",          &omni_getactivedexsells,          false },
+    { "omni layer (data retrieval)",         "omni_getactivecrowdsales",        &omni_getactivecrowdsales,        false },
+    { "omni layer (data retrieval)",         "omni_getorderbook",               &omni_getorderbook,               false },
+    { "omni layer (data retrieval)",         "omni_gettrade",                   &omni_gettrade,                   false },
+    { "omni layer (data retrieval)",         "omni_getsto",                     &omni_getsto,                     false },
+    { "omni layer (data retrieval)",         "omni_listblocktransactions",      &omni_listblocktransactions,      false },
+    { "omni layer (data retrieval)",         "omni_listpendingtransactions",    &omni_listpendingtransactions,    false },
+    { "omni layer (data retrieval)",         "omni_getallbalancesforaddress",   &omni_getallbalancesforaddress,   false },
+    { "omni layer (data retrieval)",         "omni_gettradehistoryforaddress",  &omni_gettradehistoryforaddress,  false },
+    { "omni layer (data retrieval)",         "omni_gettradehistoryforpair",     &omni_gettradehistoryforpair,     false },
+    { "omni layer (data retrieval)",         "omni_getcurrentconsensushash",    &omni_getcurrentconsensushash,    false },
+    { "omni layer (data retrieval)",         "omni_getpayload",                 &omni_getpayload,                 false },
+    { "omni layer (data retrieval)",         "omni_getseedblocks",              &omni_getseedblocks,              false },
+    { "omni layer (data retrieval)",         "omni_getmetadexhash",             &omni_getmetadexhash,             false },
+#ifdef ENABLE_WALLET
+    { "omni layer (data retrieval)",         "omni_listtransactions",           &omni_listtransactions,           false },
+
+    /* Omni Core configuration calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE */
+    { "omni layer (configuration)",          "omni_setautocommit",              &omni_setautocommit,              true },
+
+    /* Omni Core transaction calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE */
+    { "omni layer (transaction creation)",   "omni_sendrawtx",                  &omni_sendrawtx,                  false },
+    { "omni layer (transaction creation)",   "omni_send",                       &omni_send,                       false },
+    { "omni layer (transaction creation)",   "omni_senddexsell",                &omni_senddexsell,                false },
+    { "omni layer (transaction creation)",   "omni_senddexaccept",              &omni_senddexaccept,              false },
+    { "omni layer (transaction creation)",   "omni_sendissuancecrowdsale",      &omni_sendissuancecrowdsale,      false },
+    { "omni layer (transaction creation)",   "omni_sendissuancefixed",          &omni_sendissuancefixed,          false },
+    { "omni layer (transaction creation)",   "omni_sendissuancemanaged",        &omni_sendissuancemanaged,        false },
+    { "omni layer (transaction creation)",   "omni_sendtrade",                  &omni_sendtrade,                  false },
+    { "omni layer (transaction creation)",   "omni_sendcanceltradesbyprice",    &omni_sendcanceltradesbyprice,    false },
+    { "omni layer (transaction creation)",   "omni_sendcanceltradesbypair",     &omni_sendcanceltradesbypair,     false },
+    { "omni layer (transaction creation)",   "omni_sendcancelalltrades",        &omni_sendcancelalltrades,        false },
+    { "omni layer (transaction creation)",   "omni_sendsto",                    &omni_sendsto,                    false },
+    { "omni layer (transaction creation)",   "omni_sendgrant",                  &omni_sendgrant,                  false },
+    { "omni layer (transaction creation)",   "omni_sendrevoke",                 &omni_sendrevoke,                 false },
+    { "omni layer (transaction creation)",   "omni_sendclosecrowdsale",         &omni_sendclosecrowdsale,         false },
+    { "omni layer (transaction creation)",   "omni_sendchangeissuer",           &omni_sendchangeissuer,           false },
+    { "omni layer (transaction creation)",   "omni_sendall",                    &omni_sendall,                    false },
+
+    /* Omni Core hidden calls - development usage (not shown in help) */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE */
+    { "hidden",                              "omni_sendactivation",             &omni_sendactivation,             false },
+    { "hidden",                              "omni_sendalert",                  &omni_sendalert,                  true  },
+#endif
+    { "hidden",                              "mscrpc",                          &mscrpc,                          true  },
+
+    /* Omni Core raw transaction calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE */
+    { "omni layer (raw transactions)",       "omni_decodetransaction",          &omni_decodetransaction,          true  },
+    { "omni layer (raw transactions)",       "omni_createrawtx_opreturn",       &omni_createrawtx_opreturn,       true  },
+    { "omni layer (raw transactions)",       "omni_createrawtx_multisig",       &omni_createrawtx_multisig,       true  },
+    { "omni layer (raw transactions)",       "omni_createrawtx_input",          &omni_createrawtx_input,          true  },
+    { "omni layer (raw transactions)",       "omni_createrawtx_reference",      &omni_createrawtx_reference,      true  },
+    { "omni layer (raw transactions)",       "omni_createrawtx_change",         &omni_createrawtx_change,         true  },
+
+    /* Omni Core hidden calls - aliased calls for backwards compatibiltiy - to be depreciated (not shown in help) */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE */
+    { "hidden",                              "getinfo_MP",                      &omni_getinfo,                    true  },
+    { "hidden",                              "getbalance_MP",                   &omni_getbalance,                 false },
+    { "hidden",                              "getallbalancesforaddress_MP",     &omni_getallbalancesforaddress,   false },
+    { "hidden",                              "getallbalancesforid_MP",          &omni_getallbalancesforid,        false },
+    { "hidden",                              "getproperty_MP",                  &omni_getproperty,                false },
+    { "hidden",                              "listproperties_MP",               &omni_listproperties,             false },
+    { "hidden",                              "getcrowdsale_MP",                 &omni_getcrowdsale,               false },
+    { "hidden",                              "getgrants_MP",                    &omni_getgrants,                  false },
+    { "hidden",                              "getactivedexsells_MP",            &omni_getactivedexsells,          false },
+    { "hidden",                              "getactivecrowdsales_MP",          &omni_getactivecrowdsales,        false },
+    { "hidden",                              "getsto_MP",                       &omni_getsto,                     false },
+    { "hidden",                              "getorderbook_MP",                 &omni_getorderbook,               false },
+    { "hidden",                              "gettrade_MP",                     &omni_gettrade,                   false },
+    { "hidden",                              "gettransaction_MP",               &omni_gettransaction,             false },
+    { "hidden",                              "listblocktransactions_MP",        &omni_listblocktransactions,      false },
+#ifdef ENABLE_WALLET
+    { "hidden",                              "listtransactions_MP",             &omni_listtransactions,           false },
+    { "hidden",                              "sendrawtx_MP",                    &omni_sendrawtx,                  false },
+    { "hidden",                              "send_MP",                         &omni_send,                       false },
+    { "hidden",                              "sendtoowners_MP",                 &omni_sendsto,                    false },
+    { "hidden",                              "trade_MP",                        &trade_MP,                        false }, // depreciated - to be removed? we haven't released with this call
+#endif
 };
 
 CRPCTable::CRPCTable()

@@ -265,6 +265,89 @@ extern UniValue getchaintips(const UniValue& params, bool fHelp);
 extern UniValue invalidateblock(const UniValue& params, bool fHelp);
 extern UniValue reconsiderblock(const UniValue& params, bool fHelp);
 
+/* Omni Core data retrieval calls */
+extern UniValue omni_getinfo(const UniValue& params, bool fHelp);
+extern UniValue omni_getactivations(const UniValue& params, bool fHelp);
+extern UniValue omni_getallbalancesforid(const UniValue& params, bool fHelp);
+extern UniValue omni_getbalance(const UniValue& params, bool fHelp);
+extern UniValue omni_gettransaction(const UniValue& params, bool fHelp);
+extern UniValue omni_listtransactions(const UniValue& params, bool fHelp);
+extern UniValue omni_getproperty(const UniValue& params, bool fHelp);
+extern UniValue omni_listproperties(const UniValue& params, bool fHelp);
+extern UniValue omni_getcrowdsale(const UniValue& params, bool fHelp);
+extern UniValue omni_getgrants(const UniValue& params, bool fHelp);
+extern UniValue omni_getactivedexsells(const UniValue& params, bool fHelp);
+extern UniValue omni_getactivecrowdsales(const UniValue& params, bool fHelp);
+extern UniValue omni_getorderbook(const UniValue& params, bool fHelp);
+extern UniValue omni_gettrade(const UniValue& params, bool fHelp);
+extern UniValue omni_getsto(const UniValue& params, bool fHelp);
+extern UniValue omni_listblocktransactions(const UniValue& params, bool fHelp);
+extern UniValue omni_listpendingtransactions(const UniValue& params, bool fHelp);
+extern UniValue omni_getallbalancesforaddress(const UniValue& params, bool fHelp);
+extern UniValue omni_gettradehistoryforaddress(const UniValue& params, bool fHelp);
+extern UniValue omni_gettradehistoryforpair(const UniValue& params, bool fHelp);
+extern UniValue omni_getcurrentconsensushash(const UniValue& params, bool fHelp);
+extern UniValue omni_getpayload(const UniValue& params, bool fHelp);
+extern UniValue omni_getseedblocks(const UniValue& params, bool fHelp);
+extern UniValue omni_getmetadexhash(const UniValue& params, bool fHelp);
+
+/* Omni Core configuration calls */
+extern UniValue omni_setautocommit(const UniValue& params, bool fHelp);
+
+/* Omni Core transaction calls */
+extern UniValue omni_sendrawtx(const UniValue& params, bool fHelp);
+extern UniValue omni_send(const UniValue& params, bool fHelp);
+extern UniValue omni_senddexsell(const UniValue& params, bool fHelp);
+extern UniValue omni_senddexaccept(const UniValue& params, bool fHelp);
+extern UniValue omni_sendissuancecrowdsale(const UniValue& params, bool fHelp);
+extern UniValue omni_sendissuancefixed(const UniValue& params, bool fHelp);
+extern UniValue omni_sendissuancemanaged(const UniValue& params, bool fHelp);
+extern UniValue omni_sendtrade(const UniValue& params, bool fHelp);
+extern UniValue omni_sendcanceltradesbyprice(const UniValue& params, bool fHelp);
+extern UniValue omni_sendcanceltradesbypair(const UniValue& params, bool fHelp);
+extern UniValue omni_sendcancelalltrades(const UniValue& params, bool fHelp);
+extern UniValue omni_sendsto(const UniValue& params, bool fHelp);
+extern UniValue omni_sendgrant(const UniValue& params, bool fHelp);
+extern UniValue omni_sendrevoke(const UniValue& params, bool fHelp);
+extern UniValue omni_sendclosecrowdsale(const UniValue& params, bool fHelp);
+extern UniValue omni_sendchangeissuer(const UniValue& params, bool fHelp);
+extern UniValue omni_sendall(const UniValue& params, bool fHelp);
+
+/* Omni Core hidden calls - development usage (not shown in help) */
+extern UniValue mscrpc(const UniValue& params, bool fHelp);
+extern UniValue omni_sendactivation(const UniValue& params, bool fHelp);
+extern UniValue omni_sendalert(const UniValue& params, bool fHelp);
+
+/* Omni Core raw transaction calls */
+extern UniValue omni_decodetransaction(const UniValue& params, bool fHelp);
+extern UniValue omni_createrawtx_opreturn(const UniValue& params, bool fHelp);
+extern UniValue omni_createrawtx_multisig(const UniValue& params, bool fHelp);
+extern UniValue omni_createrawtx_input(const UniValue& params, bool fHelp);
+extern UniValue omni_createrawtx_reference(const UniValue& params, bool fHelp);
+extern UniValue omni_createrawtx_change(const UniValue& params, bool fHelp);
+
+/* Omni Core hidden calls - aliased calls for backwards compatibiltiy - to be depreciated (not shown in help) */
+extern UniValue trade_MP(const UniValue& params, bool fHelp);
+extern UniValue getinfo_MP(const UniValue& params, bool fHelp);
+extern UniValue getallbalancesforid_MP(const UniValue& params, bool fHelp);
+extern UniValue getbalance_MP(const UniValue& params, bool fHelp);
+extern UniValue send_MP(const UniValue& params, bool fHelp);
+extern UniValue gettransaction_MP(const UniValue& params, bool fHelp);
+extern UniValue listtransactions_MP(const UniValue& params, bool fHelp);
+extern UniValue getproperty_MP(const UniValue& params, bool fHelp);
+extern UniValue listproperties_MP(const UniValue& params, bool fHelp);
+extern UniValue getcrowdsale_MP(const UniValue& params, bool fHelp);
+extern UniValue getgrants_MP(const UniValue& params, bool fHelp);
+extern UniValue getactivedexsells_MP(const UniValue& params, bool fHelp);
+extern UniValue getactivecrowdsales_MP(const UniValue& params, bool fHelp);
+extern UniValue getorderbook_MP(const UniValue& params, bool fHelp);
+extern UniValue sendtoowners_MP(const UniValue& params, bool fHelp);
+extern UniValue sendrawtx_MP(const UniValue& params, bool fHelp);
+extern UniValue getsto_MP(const UniValue& params, bool fHelp);
+extern UniValue gettrade_MP(const UniValue& params, bool fHelp);
+extern UniValue listblocktransactions_MP(const UniValue& params, bool fHelp);
+extern UniValue getallbalancesforaddress_MP(const UniValue& params, bool fHelp);
+
 bool StartRPC();
 void InterruptRPC();
 void StopRPC();
