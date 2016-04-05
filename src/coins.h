@@ -396,7 +396,6 @@ protected:
 
 public:
     CCoinsViewCache(CCoinsView *baseIn);
-    CCoinsViewCache(const CCoinsViewCache &);
     ~CCoinsViewCache();
 
     // Standard CCoinsView methods

@@ -91,11 +91,12 @@ UniValue omni_decodetransaction(const UniValue& params, bool fHelp)
     {
         LOCK2(cs_main, cs_tx_cache);
         // temporarily switch global coins view cache for transaction inputs
-        std::swap(view, viewTemp);
+        CCoinsViewCache originalCache = view;
+        view = viewTemp;
         // then get the results
         populateResult = populateRPCTransactionObject(tx, uint256(), txObj, "", false, "", blockHeight);
         // and restore the original, unpolluted coins view cache
-        std::swap(viewTemp, view);
+        view = originalCache;
     }
 
     if (populateResult != 0) PopulateFailure(populateResult);
