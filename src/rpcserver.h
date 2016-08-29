@@ -216,6 +216,7 @@ extern json_spirit::Value getdifficulty(const json_spirit::Array& params, bool f
 extern json_spirit::Value settxfee(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getmempoolinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getrawmempool(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value clearmempool(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblockhash(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool fHelp);
@@ -224,6 +225,112 @@ extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value getchaintips(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
+
+/* Omni Core data retrieval calls */
+extern json_spirit::Value omni_getinfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getactivations(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getallbalancesforid(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getbalance(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_gettransaction(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_listtransactions(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getproperty(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_listproperties(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getcrowdsale(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getgrants(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getactivedexsells(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getactivecrowdsales(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getorderbook(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_gettrade(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getsto(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_listblocktransactions(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_listpendingtransactions(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getallbalancesforaddress(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_gettradehistoryforaddress(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_gettradehistoryforpair(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getcurrentconsensushash(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getpayload(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getseedblocks(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getmetadexhash(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getfeecache(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getfeetrigger(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getfeeshare(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getfeedistribution(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_getfeedistributions(const json_spirit::Array& params, bool fHelp);
+
+/* Omni Core configuration calls */
+extern json_spirit::Value omni_setautocommit(const json_spirit::Array& params, bool fHelp);
+
+/* Omni Core transaction calls */
+extern json_spirit::Value omni_sendrawtx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_send(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_senddexsell(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_senddexaccept(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendissuancecrowdsale(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendissuancefixed(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendissuancemanaged(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendtrade(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendcanceltradesbyprice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendcanceltradesbypair(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendcancelalltrades(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendsto(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendgrant(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendrevoke(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendclosecrowdsale(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendchangeissuer(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendall(const json_spirit::Array& params, bool fHelp);
+
+/* Omni Core payload creation calls */
+extern json_spirit::Value omni_createpayload_simplesend(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_sendall(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_dexsell(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_dexaccept(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_sto(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_issuancefixed(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_issuancecrowdsale(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_issuancemanaged(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_closecrowdsale(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_grant(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_revoke(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_changeissuer(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_trade(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_canceltradesbyprice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_canceltradesbypair(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createpayload_cancelalltrades(const json_spirit::Array& params, bool fHelp);
+
+/* Omni Core hidden calls - development usage (not shown in help) */
+extern json_spirit::Value mscrpc(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendactivation(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_sendalert(const json_spirit::Array& params, bool fHelp);
+
+/* Omni Core raw transaction calls */
+extern json_spirit::Value omni_decodetransaction(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createrawtx_opreturn(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createrawtx_multisig(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createrawtx_input(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createrawtx_reference(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value omni_createrawtx_change(const json_spirit::Array& params, bool fHelp);
+
+/* Omni Core hidden calls - aliased calls for backwards compatibiltiy - to be depreciated (not shown in help) */
+extern json_spirit::Value trade_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getinfo_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getallbalancesforid_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getbalance_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value send_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value gettransaction_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value listtransactions_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getproperty_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value listproperties_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getcrowdsale_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getgrants_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getactivedexsells_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getactivecrowdsales_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getorderbook_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value sendtoowners_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value sendrawtx_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getsto_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value gettrade_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value listblocktransactions_MP(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getallbalancesforaddress_MP(const json_spirit::Array& params, bool fHelp);
 
 // in rest.cpp
 extern bool HTTPReq_REST(AcceptedConnection *conn,

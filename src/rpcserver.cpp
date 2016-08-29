@@ -14,6 +14,8 @@
 #include "wallet.h"
 #endif
 
+#include "omnicore/mbstring.h" // SanitizeInvalidUTF8
+
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -46,6 +48,9 @@ static boost::thread_group* rpc_worker_group = NULL;
 static boost::asio::io_service::work *rpc_dummy_work = NULL;
 static std::vector<CSubNet> rpc_allow_subnets; //!< List of subnets to allow RPC connections from
 static std::vector< boost::shared_ptr<ip::tcp::acceptor> > rpc_acceptors;
+
+//! Sanitize UTF-8 encoded strings in RPC responses
+static bool fSanitizeResponse = true;
 
 void RPCTypeCheck(const Array& params,
                   const list<Value_type>& typesExpected,
@@ -228,10 +233,10 @@ Value stop(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop Bitcoin server.");
+            "\nStop Omni Core server.");
     // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "Bitcoin server stopping";
+    return "Omni Core server stopping";
 }
 
 
@@ -302,6 +307,7 @@ static const CRPCCommand vRPCCommands[] =
     { "util",               "estimatepriority",       &estimatepriority,       true,      true,       false },
 
     /* Not shown in help */
+    { "hidden",             "clearmempool",           &clearmempool,           true,      false,      false },
     { "hidden",             "invalidateblock",        &invalidateblock,        true,      true,       false },
     { "hidden",             "reconsiderblock",        &reconsiderblock,        true,      true,       false },
     { "hidden",             "setmocktime",            &setmocktime,            true,      false,      false },
@@ -348,6 +354,123 @@ static const CRPCCommand vRPCCommands[] =
     { "wallet",             "walletpassphrasechange", &walletpassphrasechange, true,      false,      true },
     { "wallet",             "walletpassphrase",       &walletpassphrase,       true,      false,      true },
 #endif // ENABLE_WALLET
+
+    /* Omni Core data retrieval calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE  THREADSAFE  REQWALLET */
+    { "omni layer (data retrieval)",         "omni_getinfo",                    &omni_getinfo,                    true,       true,       false },
+    { "omni layer (data retrieval)",         "omni_getactivations",             &omni_getactivations,             true,       true,       false },
+    { "omni layer (data retrieval)",         "omni_getallbalancesforid",        &omni_getallbalancesforid,        false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getbalance",                 &omni_getbalance,                 false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_gettransaction",             &omni_gettransaction,             false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getproperty",                &omni_getproperty,                false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_listproperties",             &omni_listproperties,             false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getcrowdsale",               &omni_getcrowdsale,               false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getgrants",                  &omni_getgrants,                  false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getactivedexsells",          &omni_getactivedexsells,          false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getactivecrowdsales",        &omni_getactivecrowdsales,        false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getorderbook",               &omni_getorderbook,               false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_gettrade",                   &omni_gettrade,                   false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getsto",                     &omni_getsto,                     false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_listblocktransactions",      &omni_listblocktransactions,      false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_listpendingtransactions",    &omni_listpendingtransactions,    false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getallbalancesforaddress",   &omni_getallbalancesforaddress,   false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_gettradehistoryforaddress",  &omni_gettradehistoryforaddress,  false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_gettradehistoryforpair",     &omni_gettradehistoryforpair,     false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getcurrentconsensushash",    &omni_getcurrentconsensushash,    false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getpayload",                 &omni_getpayload,                 false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getseedblocks",              &omni_getseedblocks,              false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getmetadexhash",             &omni_getmetadexhash,             false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getfeecache",                &omni_getfeecache,                false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getfeetrigger",              &omni_getfeetrigger,              false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getfeedistribution",         &omni_getfeedistribution,         false,      true,       false },
+    { "omni layer (data retrieval)",         "omni_getfeedistributions",        &omni_getfeedistributions,        false,      true,       false },
+#ifdef ENABLE_WALLET
+    { "omni layer (data retrieval)",         "omni_listtransactions",           &omni_listtransactions,           false,      true,       true },
+    { "omni layer (data retrieval)",         "omni_getfeeshare",                &omni_getfeeshare,                false,      true,       true },
+
+    /* Omni Core configuration calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE  THREADSAFE  REQWALLET */
+    { "omni layer (configuration)",          "omni_setautocommit",              &omni_setautocommit,              true,       true,       true },
+
+    /* Omni Core transaction calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE  THREADSAFE  REQWALLET */
+    { "omni layer (transaction creation)",   "omni_sendrawtx",                  &omni_sendrawtx,                  false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_send",                       &omni_send,                       false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_senddexsell",                &omni_senddexsell,                false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_senddexaccept",              &omni_senddexaccept,              false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendissuancecrowdsale",      &omni_sendissuancecrowdsale,      false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendissuancefixed",          &omni_sendissuancefixed,          false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendissuancemanaged",        &omni_sendissuancemanaged,        false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendtrade",                  &omni_sendtrade,                  false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendcanceltradesbyprice",    &omni_sendcanceltradesbyprice,    false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendcanceltradesbypair",     &omni_sendcanceltradesbypair,     false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendcancelalltrades",        &omni_sendcancelalltrades,        false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendsto",                    &omni_sendsto,                    false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendgrant",                  &omni_sendgrant,                  false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendrevoke",                 &omni_sendrevoke,                 false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendclosecrowdsale",         &omni_sendclosecrowdsale,         false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendchangeissuer",           &omni_sendchangeissuer,           false,      true,       true },
+    { "omni layer (transaction creation)",   "omni_sendall",                    &omni_sendall,                    false,      true,       true },
+
+    /* Omni Core hidden calls - development usage (not shown in help) */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE  THREADSAFE  REQWALLET */
+    { "hidden",                              "omni_sendactivation",             &omni_sendactivation,             false,      true,       true },
+    { "hidden",                              "omni_sendalert",                  &omni_sendalert,                  true,       true,       true },
+#endif
+    { "hidden",                              "mscrpc",                          &mscrpc,                          true,       true,       false },
+
+    /* Omni Core raw transaction calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE  THREADSAFE  REQWALLET */
+    { "omni layer (raw transactions)",       "omni_decodetransaction",          &omni_decodetransaction,          true,       true,       false },
+    { "omni layer (raw transactions)",       "omni_createrawtx_opreturn",       &omni_createrawtx_opreturn,       true,       true,       false },
+    { "omni layer (raw transactions)",       "omni_createrawtx_multisig",       &omni_createrawtx_multisig,       true,       true,       false },
+    { "omni layer (raw transactions)",       "omni_createrawtx_input",          &omni_createrawtx_input,          true,       true,       false },
+    { "omni layer (raw transactions)",       "omni_createrawtx_reference",      &omni_createrawtx_reference,      true,       true,       false },
+    { "omni layer (raw transactions)",       "omni_createrawtx_change",         &omni_createrawtx_change,         true,       true,       false },
+
+    /* Omni Core payload creation calls */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE  THREADSAFE  REQWALLET */
+    { "omni layer (payload creation)",       "omni_createpayload_simplesend",   &omni_createpayload_simplesend,   true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_sendall",      &omni_createpayload_sendall,      true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_dexsell",      &omni_createpayload_dexsell,      true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_dexaccept",    &omni_createpayload_dexaccept,    true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_sto",          &omni_createpayload_sto,          true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_grant",        &omni_createpayload_grant,        true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_revoke",       &omni_createpayload_revoke,       true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_changeissuer", &omni_createpayload_changeissuer, true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_trade",        &omni_createpayload_trade,        true,       true,       false },
+    { "omni layer (payload creation)",       "omni_createpayload_issuancefixed",       &omni_createpayload_issuancefixed,       true, true, false },
+    { "omni layer (payload creation)",       "omni_createpayload_issuancecrowdsale",   &omni_createpayload_issuancecrowdsale,   true, true, false },
+    { "omni layer (payload creation)",       "omni_createpayload_issuancemanaged",     &omni_createpayload_issuancemanaged,     true, true, false },
+    { "omni layer (payload creation)",       "omni_createpayload_closecrowdsale",      &omni_createpayload_closecrowdsale,      true, true, false },
+    { "omni layer (payload creation)",       "omni_createpayload_canceltradesbyprice", &omni_createpayload_canceltradesbyprice, true, true, false },
+    { "omni layer (payload creation)",       "omni_createpayload_canceltradesbypair",  &omni_createpayload_canceltradesbypair,  true, true, false },
+    { "omni layer (payload creation)",       "omni_createpayload_cancelalltrades",     &omni_createpayload_cancelalltrades,     true, true, false },
+
+    /* Omni Core hidden calls - aliased calls for backwards compatibiltiy - to be depreciated (not shown in help) */
+    /* CATEGORY                              NAME                               ACTOR (FUNCTION)                  OKSAFEMODE  THREADSAFE  REQWALLET */
+    { "hidden",                              "getinfo_MP",                      &omni_getinfo,                    true,       true,       false },
+    { "hidden",                              "getbalance_MP",                   &omni_getbalance,                 false,      true,       false },
+    { "hidden",                              "getallbalancesforaddress_MP",     &omni_getallbalancesforaddress,   false,      true,       false },
+    { "hidden",                              "getallbalancesforid_MP",          &omni_getallbalancesforid,        false,      true,       false },
+    { "hidden",                              "getproperty_MP",                  &omni_getproperty,                false,      true,       false },
+    { "hidden",                              "listproperties_MP",               &omni_listproperties,             false,      true,       false },
+    { "hidden",                              "getcrowdsale_MP",                 &omni_getcrowdsale,               false,      true,       false },
+    { "hidden",                              "getgrants_MP",                    &omni_getgrants,                  false,      true,       false },
+    { "hidden",                              "getactivedexsells_MP",            &omni_getactivedexsells,          false,      true,       false },
+    { "hidden",                              "getactivecrowdsales_MP",          &omni_getactivecrowdsales,        false,      true,       false },
+    { "hidden",                              "getsto_MP",                       &omni_getsto,                     false,      true,       false },
+    { "hidden",                              "getorderbook_MP",                 &omni_getorderbook,               false,      true,       false },
+    { "hidden",                              "gettrade_MP",                     &omni_gettrade,                   false,      true,       false },
+    { "hidden",                              "gettransaction_MP",               &omni_gettransaction,             false,      true,       false },
+    { "hidden",                              "listblocktransactions_MP",        &omni_listblocktransactions,      false,      true,       false },
+#ifdef ENABLE_WALLET
+    { "hidden",                              "listtransactions_MP",             &omni_listtransactions,           false,      true,       true },
+    { "hidden",                              "sendrawtx_MP",                    &omni_sendrawtx,                  false,      true,       true },
+    { "hidden",                              "send_MP",                         &omni_send,                       false,      true,       true },
+    { "hidden",                              "sendtoowners_MP",                 &omni_sendsto,                    false,      true,       true },
+    { "hidden",                              "trade_MP",                        &trade_MP,                        false,      true,       true }, // depreciated - to be removed? we haven't released with this call
+#endif
 };
 
 CRPCTable::CRPCTable()
@@ -572,7 +695,7 @@ void StartRPCThreads()
         unsigned char rand_pwd[32];
         GetRandBytes(rand_pwd, 32);
         uiInterface.ThreadSafeMessageBox(strprintf(
-            _("To use bitcoind, or the -server option to bitcoin-qt, you must set an rpcpassword in the configuration file:\n"
+            _("To use omnicored, or the -server option to omnicore-qt, you must set an rpcpassword in the configuration file:\n"
               "%s\n"
               "It is recommended you use the following random password:\n"
               "rpcuser=bitcoinrpc\n"
@@ -690,6 +813,9 @@ void StartRPCThreads()
         StartShutdown();
         return;
     }
+
+    // Sanitize non-UTF8 compliant RPC responses
+    fSanitizeResponse = GetBoolArg("-rpcforceutf8", true);
 
     rpc_worker_group = new boost::thread_group();
     for (int i = 0; i < GetArg("-rpcthreads", 4); i++)
@@ -922,6 +1048,10 @@ static bool HTTPReq_JSONRPC(AcceptedConnection *conn,
         else
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
 
+        if (fSanitizeResponse) {
+            strReply = mastercore::SanitizeInvalidUTF8(strReply);
+        }
+
         conn->stream() << HTTPReplyHeader(HTTP_OK, fRun, strReply.size()) << strReply << std::flush;
     }
     catch (Object& objError)
@@ -1022,7 +1152,7 @@ json_spirit::Value CRPCTable::execute(const std::string &strMethod, const json_s
 }
 
 std::string HelpExampleCli(string methodname, string args){
-    return "> bitcoin-cli " + methodname + " " + args + "\n";
+    return "> omnicore-cli " + methodname + " " + args + "\n";
 }
 
 std::string HelpExampleRpc(string methodname, string args){

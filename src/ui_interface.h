@@ -98,6 +98,18 @@ public:
 
     /** New block has been accepted */
     boost::signals2::signal<void (const uint256& hash)> NotifyBlockTip;
+
+    /** Omni balances have been updated. */
+    boost::signals2::signal<void ()> OmniBalanceChanged;
+
+    /** Omni state has been changed. */
+    boost::signals2::signal<void ()> OmniStateChanged;
+
+    /** Omni pending status has been changed */
+    boost::signals2::signal<void (bool pending)> OmniPendingChanged;
+
+    /** Omni state has been invalidated due to a reorg */
+    boost::signals2::signal<void ()> OmniStateInvalidated;
 };
 
 extern CClientUIInterface uiInterface;

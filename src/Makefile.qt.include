@@ -1,4 +1,4 @@
-bin_PROGRAMS += qt/bitcoin-qt
+bin_PROGRAMS += qt/omnicore-qt
 EXTRA_LIBRARIES += qt/libbitcoinqt.a
 
 # bitcoin qt core #
@@ -91,7 +91,16 @@ QT_FORMS_UI = \
   qt/forms/sendcoinsdialog.ui \
   qt/forms/sendcoinsentry.ui \
   qt/forms/signverifymessagedialog.ui \
-  qt/forms/transactiondescdialog.ui
+  qt/forms/transactiondescdialog.ui \
+  qt/forms/sendmpdialog.ui \
+  qt/forms/lookupaddressdialog.ui \
+  qt/forms/lookupspdialog.ui \
+  qt/forms/lookuptxdialog.ui \
+  qt/forms/txhistorydialog.ui \
+  qt/forms/metadexcanceldialog.ui \
+  qt/forms/metadexdialog.ui \
+  qt/forms/tradehistorydialog.ui \
+  qt/forms/balancesdialog.ui
 
 QT_MOC_CPP = \
   qt/moc_addressbookpage.cpp \
@@ -136,7 +145,16 @@ QT_MOC_CPP = \
   qt/moc_utilitydialog.cpp \
   qt/moc_walletframe.cpp \
   qt/moc_walletmodel.cpp \
-  qt/moc_walletview.cpp
+  qt/moc_walletview.cpp \
+  qt/moc_sendmpdialog.cpp \
+  qt/moc_lookupaddressdialog.cpp \
+  qt/moc_lookupspdialog.cpp \
+  qt/moc_lookuptxdialog.cpp \
+  qt/moc_txhistorydialog.cpp \
+  qt/moc_balancesdialog.cpp \
+  qt/moc_metadexdialog.cpp \
+  qt/moc_metadexcanceldialog.cpp \
+  qt/moc_tradehistorydialog.cpp
 
 BITCOIN_MM = \
   qt/macdockiconhandler.mm \
@@ -207,7 +225,18 @@ BITCOIN_QT_H = \
   qt/walletmodel.h \
   qt/walletmodeltransaction.h \
   qt/walletview.h \
-  qt/winshutdownmonitor.h
+  qt/winshutdownmonitor.h \
+  qt/lookupaddressdialog.h \
+  qt/lookupspdialog.h \
+  qt/lookuptxdialog.h \
+  qt/txhistorydialog.h \
+  qt/balancesdialog.h \
+  qt/omnicore_init.h \
+  qt/metadexdialog.h \
+  qt/metadexcanceldialog.h \
+  qt/tradehistorydialog.h \
+  qt/sendmpdialog.h \
+  qt/omnicore_qtutils.h
 
 RES_ICONS = \
   qt/res/icons/add.png \
@@ -256,7 +285,29 @@ RES_ICONS = \
   qt/res/icons/tx_mined.png \
   qt/res/icons/unit_btc.png \
   qt/res/icons/unit_mbtc.png \
-  qt/res/icons/unit_ubtc.png
+  qt/res/icons/unit_ubtc.png \
+  qt/res/icons/token_msc.png \
+  qt/res/icons/token_btc.png \
+  qt/res/icons/mp_balances.png \
+  qt/res/icons/mp_exchange.png \
+  qt/res/icons/mp_history.png \
+  qt/res/icons/mp_home.png \
+  qt/res/icons/mp_meta_cancelled.png \
+  qt/res/icons/mp_meta_filled.png \
+  qt/res/icons/mp_meta_open.png \
+  qt/res/icons/mp_meta_partial.png \
+  qt/res/icons/mp_meta_partialclosed.png \
+  qt/res/icons/mp_meta_pending.png \
+  qt/res/icons/mp_receive.png \
+  qt/res/icons/mp_send.png \
+  qt/res/icons/mp_sp.png \
+  qt/res/icons/mp_toolbox.png \
+  qt/res/icons/omni_hourglass.png \
+  qt/res/icons/omni_txin.png \
+  qt/res/icons/omni_txout.png \
+  qt/res/icons/omni_txinout.png \
+  qt/res/icons/omni_txinvalid.png \
+  qt/res/icons/transaction_invalid.png
 
 BITCOIN_QT_CPP = \
   qt/bitcoinaddressvalidator.cpp \
@@ -278,7 +329,9 @@ BITCOIN_QT_CPP = \
   qt/splashscreen.cpp \
   qt/trafficgraphwidget.cpp \
   qt/utilitydialog.cpp \
-  qt/winshutdownmonitor.cpp
+  qt/winshutdownmonitor.cpp \
+  qt/omnicore_init.cpp \
+  qt/omnicore_qtutils.cpp
 
 if ENABLE_WALLET
 BITCOIN_QT_CPP += \
@@ -307,7 +360,16 @@ BITCOIN_QT_CPP += \
   qt/walletframe.cpp \
   qt/walletmodel.cpp \
   qt/walletmodeltransaction.cpp \
-  qt/walletview.cpp
+  qt/walletview.cpp \
+  qt/sendmpdialog.cpp \
+  qt/lookupaddressdialog.cpp \
+  qt/lookupspdialog.cpp \
+  qt/lookuptxdialog.cpp \
+  qt/txhistorydialog.cpp \
+  qt/balancesdialog.cpp \
+  qt/metadexdialog.cpp \
+  qt/metadexcanceldialog.cpp \
+  qt/tradehistorydialog.cpp
 endif
 
 RES_IMAGES = \
@@ -317,7 +379,7 @@ RES_IMAGES = \
 
 RES_MOVIES = $(wildcard qt/res/movies/spinner-*.png)
 
-BITCOIN_RC = qt/res/bitcoin-qt-res.rc
+BITCOIN_RC = omnicore/res/omnicore-qt-res.rc
 
 BITCOIN_QT_INCLUDES = -I$(builddir)/qt -I$(srcdir)/qt -I$(srcdir)/qt/forms \
   -I$(builddir)/qt/forms
@@ -337,7 +399,7 @@ QT_FORMS_H=$(join $(dir $(QT_FORMS_UI)),$(addprefix ui_, $(notdir $(QT_FORMS_UI:
 # Most files will depend on the forms and moc files as includes. Generate them
 # before anything else.
 $(QT_MOC): $(QT_FORMS_H)
-$(qt_libbitcoinqt_a_OBJECTS) $(qt_bitcoin_qt_OBJECTS) : | $(QT_MOC)
+$(qt_libbitcoinqt_a_OBJECTS) $(qt_omnicore_qt_OBJECTS) : | $(QT_MOC)
 
 #Generating these with a half-written protobuf header leads to wacky results.
 #This makes sure it's done.
@@ -345,24 +407,24 @@ $(QT_MOC): $(PROTOBUF_H)
 $(QT_MOC_CPP): $(PROTOBUF_H)
 
 # bitcoin-qt binary #
-qt_bitcoin_qt_CPPFLAGS = $(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
+qt_omnicore_qt_CPPFLAGS = $(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
   $(QT_INCLUDES) $(PROTOBUF_CFLAGS) $(QR_CFLAGS)
 
-qt_bitcoin_qt_SOURCES = qt/bitcoin.cpp
+qt_omnicore_qt_SOURCES = qt/bitcoin.cpp
 if TARGET_DARWIN
-  qt_bitcoin_qt_SOURCES += $(BITCOIN_MM)
+  qt_omnicore_qt_SOURCES += $(BITCOIN_MM)
 endif
 if TARGET_WINDOWS
-  qt_bitcoin_qt_SOURCES += $(BITCOIN_RC)
+  qt_omnicore_qt_SOURCES += $(BITCOIN_RC)
 endif
-qt_bitcoin_qt_LDADD = qt/libbitcoinqt.a $(LIBBITCOIN_SERVER)
+qt_omnicore_qt_LDADD = qt/libbitcoinqt.a $(LIBBITCOIN_SERVER)
 if ENABLE_WALLET
-qt_bitcoin_qt_LDADD += $(LIBBITCOIN_WALLET)
+qt_omnicore_qt_LDADD += $(LIBBITCOIN_WALLET)
 endif
-qt_bitcoin_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) $(LIBBITCOIN_UNIVALUE) $(LIBLEVELDB) $(LIBMEMENV) \
+qt_omnicore_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) $(LIBBITCOIN_UNIVALUE) $(LIBLEVELDB) $(LIBMEMENV) \
   $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(LIBSECP256K1)
-qt_bitcoin_qt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(QT_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
-qt_bitcoin_qt_LIBTOOLFLAGS = --tag CXX
+qt_omnicore_qt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(QT_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+qt_omnicore_qt_LIBTOOLFLAGS = --tag CXX
 
 #locale/foo.ts -> locale/foo.qm
 QT_QM=$(QT_TS:.ts=.qm)
@@ -392,10 +454,10 @@ CLEAN_QT = $(nodist_qt_libbitcoinqt_a_SOURCES) $(QT_QM) $(QT_FORMS_H) qt/*.gcda 
 
 CLEANFILES += $(CLEAN_QT)
 
-bitcoin_qt_clean: FORCE
-	rm -f $(CLEAN_QT) $(qt_libbitcoinqt_a_OBJECTS) $(qt_bitcoin_qt_OBJECTS) qt/bitcoin-qt$(EXEEXT) $(LIBBITCOINQT)
+omnicore_qt_clean: FORCE
+	rm -f $(CLEAN_QT) $(qt_libbitcoinqt_a_OBJECTS) $(qt_omnicore_qt_OBJECTS) qt/omnicore-qt$(EXEEXT) $(LIBBITCOINQT)
 
-bitcoin_qt : qt/bitcoin-qt$(EXEEXT)
+omnicore_qt : qt/omnicore-qt$(EXEEXT)
 
 ui_%.h: %.ui
 	@test -f $(UIC)

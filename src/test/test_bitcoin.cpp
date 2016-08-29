@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2013 The Bitcoin Core developers
+// Copyright (c) 2011-2015 The Bitcoin Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -23,6 +23,7 @@ CWallet* pwalletMain;
 
 extern bool fPrintToConsole;
 extern void noui_connect();
+extern int mastercore_shutdown(void);
 
 struct TestingSetup {
     CCoinsViewDB *pcoinsdbview;
@@ -61,6 +62,7 @@ struct TestingSetup {
         threadGroup.interrupt_all();
         threadGroup.join_all();
         UnregisterNodeSignals(GetNodeSignals());
+        mastercore_shutdown();
 #ifdef ENABLE_WALLET
         delete pwalletMain;
         pwalletMain = NULL;
@@ -71,7 +73,12 @@ struct TestingSetup {
 #ifdef ENABLE_WALLET
         bitdb.Flush(true);
 #endif
-        boost::filesystem::remove_all(pathTemp);
+        boost::system::error_code ec;
+        boost::filesystem::remove_all(pathTemp, ec);
+        if (ec) {
+            uiInterface.ThreadSafeMessageBox("Could not cleanup temporary test directory "
+                                + pathTemp.string(), "", CClientUIInterface::MSG_WARNING);
+        }
     }
 };
 
