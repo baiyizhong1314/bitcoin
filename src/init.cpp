@@ -500,6 +500,8 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-omnialertignoresender", "Ignore senders of alerts");
     strUsage += HelpMessageOpt("-omniactivationignoresender", "Ignore senders of activations");
     strUsage += HelpMessageOpt("-omniactivationallowsender", "Whitelist senders of activations");
+    strUsage += HelpMessageOpt("-disclaimer", "Explicitly show QT disclaimer on startup (default: 0)");
+    strUsage += HelpMessageOpt("-omniuiwalletscope", "Max. transactions to show in trade and transaction history (default: 65535)");
 
     return strUsage;
 }
