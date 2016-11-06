@@ -327,12 +327,9 @@ UniValue omni_senddexaccept(const UniValue& params, bool fHelp)
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    // TODO: check fPayAtLeastCustomFee!
-
     // temporarily update the global transaction fee to pay enough for the accept fee
     CFeeRate payTxFeeOriginal = payTxFee;
-    // bool fPayAtLeastCustomFeeOriginal = fPayAtLeastCustomFee;
-    payTxFee = CFeeRate(nMinimumAcceptFee, 1000);
+    payTxFee = CFeeRate(nMinimumAcceptFee, 225); // TODO: refine!
     // fPayAtLeastCustomFee = true;
 #endif
 
@@ -347,7 +344,6 @@ UniValue omni_senddexaccept(const UniValue& params, bool fHelp)
 #ifdef ENABLE_WALLET
     // set the custom fee back to original
     payTxFee = payTxFeeOriginal;
-    // fPayAtLeastCustomFee = fPayAtLeastCustomFeeOriginal;
 #endif
 
     // check error and return the txid (or raw hex depending on autocommit)
