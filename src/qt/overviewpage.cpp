@@ -403,7 +403,7 @@ void OverviewPage::UpdatePropertyBalance(unsigned int propertyId, uint64_t avail
     // property label
     string spName = getPropertyName(propertyId).c_str();
     if(spName.size()>22) spName=spName.substr(0,22)+"...";
-    spName += " (#" + static_cast<ostringstream*>( &(ostringstream() << propertyId) )->str() + ")";
+    spName += strprintf(" (#%d)", propertyId);
     QLabel *propLabel = new QLabel(QString::fromStdString(spName));
     propLabel->setStyleSheet("QLabel { font-weight:bold; }");
     vlayout->addWidget(propLabel);
