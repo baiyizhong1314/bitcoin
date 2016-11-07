@@ -166,8 +166,8 @@ void MetaDExCancelDialog::UpdateCancelCombo()
                     if ((obj.getProperty() == OMNI_PROPERTY_MSC) || (obj.getProperty() == OMNI_PROPERTY_TMSC)) isBuy = true;
                     string sellToken = getPropertyName(obj.getProperty()).c_str();
                     string desiredToken = getPropertyName(obj.getDesProperty()).c_str();
-                    string sellId = static_cast<ostringstream*>( &(ostringstream() << obj.getProperty()) )->str();
-                    string desiredId = static_cast<ostringstream*>( &(ostringstream() << obj.getDesProperty()) )->str();
+                    string sellId = strprintf("%d", obj.getProperty());
+                    string desiredId = strprintf("%d", obj.getDesProperty());
                     if(sellToken.size()>30) sellToken=sellToken.substr(0,30)+"...";
                     sellToken += " (#" + sellId + ")";
                     if(desiredToken.size()>30) desiredToken=desiredToken.substr(0,30)+"...";
@@ -334,8 +334,8 @@ void MetaDExCancelDialog::SendCancelTransaction()
     if (action != 4) {
         string sellToken = getPropertyName(propertyIdForSale).c_str();
         string desiredToken = getPropertyName(propertyIdDesired).c_str();
-        string sellId = static_cast<ostringstream*>( &(ostringstream() << propertyIdForSale) )->str();
-        string desiredId = static_cast<ostringstream*>( &(ostringstream() << propertyIdDesired) )->str();
+        string sellId = strprintf("%d", propertyIdForSale);
+        string desiredId = strprintf("%d", propertyIdDesired);
         if(sellToken.size()>30) sellToken=sellToken.substr(0,30)+"...";
         sellToken += " (#" + sellId + ")";
         if(desiredToken.size()>30) desiredToken=desiredToken.substr(0,30)+"...";

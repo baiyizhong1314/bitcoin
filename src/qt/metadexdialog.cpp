@@ -173,7 +173,7 @@ void MetaDExDialog::UpdateProperties()
         if (spName.size()>nameMax) {
             spName = spName.substr(0,nameMax)+"...";
         }
-        string spId = static_cast<ostringstream*>( &(ostringstream() << propertyId) )->str();
+        string spId = strprintf("%d", propertyId);
         spName += " (#" + spId + ")";
         ui->comboPairTokenA->addItem(spName.c_str(),spId.c_str());
         ui->comboPairTokenB->addItem(spName.c_str(),spId.c_str());
