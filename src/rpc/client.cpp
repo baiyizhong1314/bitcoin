@@ -176,6 +176,15 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "omni_sendalert", 1 },
     { "omni_sendalert", 2 },
 
+    /* Omni Core - raw transaction calls */
+    { "omni_decodetransaction", 1 },
+    { "omni_decodetransaction", 2 },
+    { "omni_createrawtx_reference", 2 },
+    { "omni_createrawtx_input", 2 },
+    { "omni_createrawtx_change", 1 },
+    { "omni_createrawtx_change", 3 },
+    { "omni_createrawtx_change", 4 },
+
     /* Omni Core - payload creation */
     { "omni_createpayload_simplesend", 0 },
     { "omni_createpayload_sendall", 0 },
