@@ -1144,6 +1144,47 @@ UniValue omni_sendactivation(const UniValue& params, bool fHelp)
     }
 }
 
+UniValue omni_senddeactivation(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+            "omni_senddeactivation \"fromaddress\" featureid\n"
+            "\nDeactivate a protocol feature.  For Emergency Use Only.\n"
+            "\nNote: Omni Core ignores deactivations from unauthorized sources.\n"
+            "\nArguments:\n"
+            "1. fromaddress          (string, required) the address to send from\n"
+            "2. featureid            (number, required) the identifier of the feature to activate\n"
+            "\nResult:\n"
+            "\"hash\"                  (string) the hex-encoded transaction hash\n"
+            "\nExamples:\n"
+            + HelpExampleCli("omni_senddeactivation", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
+            + HelpExampleRpc("omni_senddeactivation", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
+        );
+
+    // obtain parameters & info
+    std::string fromAddress = ParseAddress(params[0]);
+    uint16_t featureId = params[1].get_int64();
+
+    // create a payload for the transaction
+    std::vector<unsigned char> payload = CreatePayload_DeactivateFeature(featureId);
+
+    // request the wallet build the transaction (and if needed commit it)
+    uint256 txid;
+    std::string rawHex;
+    int result = WalletTxBuilder(fromAddress, "", "", 0, payload, txid, rawHex, autoCommit);
+
+    // check error and return the txid (or raw hex depending on autocommit)
+    if (result != 0) {
+        throw JSONRPCError(result, error_str(result));
+    } else {
+        if (!autoCommit) {
+            return rawHex;
+        } else {
+            return txid.GetHex();
+        }
+    }
+}
+
 UniValue omni_sendalert(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 4)
@@ -1218,6 +1259,7 @@ static const CRPCCommand commands[] =
     { "omni layer (transaction creation)", "omni_sendclosecrowdsale",      &omni_sendclosecrowdsale,      false },
     { "omni layer (transaction creation)", "omni_sendchangeissuer",        &omni_sendchangeissuer,        false },
     { "omni layer (transaction creation)", "omni_sendall",                 &omni_sendall,                 false },
+    { "hidden",                            "omni_senddeactivation",        &omni_senddeactivation,        true  },
     { "hidden",                            "omni_sendactivation",          &omni_sendactivation,          false },
     { "hidden",                            "omni_sendalert",               &omni_sendalert,               true  },
 
