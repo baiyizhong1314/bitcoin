@@ -1,7 +1,7 @@
 Omni Core v0.0.11.2
 ===================
 
-v0.0.11.2 is a bugfix release which resolves an issue where, in the case where a buyer accepts more than available for sale on the traditional distributed exchange, the RPC API reported an amount higher than available. This release also disables the alert system as per default.
+v0.0.11.2 is a bugfix release which resolves an issue where, in the case where a buyer accepts more than available for sale on the traditional distributed exchange, the RPC API reported an amount higher than available, and it fixes an issue with the planed feature of fee distribution system. This release also disables the alert system as per default.
 
 v0.0.11.1 is a bugfix release which resolves a critical bug in the RPC API whereby under certain circumstances retrieving data about a sell offer may trigger a failsafe and cause the automatic shutdown of the client.
 
@@ -216,6 +216,8 @@ The following list includes relevant pull requests merged into this release:
 - #421 Fix edge case of DEx 1 over-accepts
 - #422 Disable alert system as per default
 - #423 Bump version to Omni Core 0.0.11.2-rel
+- #426 Fix several bugs in fee system
+- #430 Update release notes for 0.0.11.2
 ```
 
 Credits
