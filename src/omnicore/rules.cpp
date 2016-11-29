@@ -488,7 +488,7 @@ bool DeactivateFeature(uint16_t featureId, int transactionBlock)
 
     std::string alertText = strprintf("An emergency deactivation of feature ID %d (%s) has occurred.", featureId, featureName);
     AddAlert("omnicore", ALERT_BLOCK_EXPIRY, transactionBlock + 1024, alertText);
-    CAlert::Notify(alertText, true);
+    AlertNotify(alertText);
 
     return true;
 }
