@@ -12,6 +12,7 @@
 #include "init.h"
 #include "main.h"
 #include "pubkey.h"
+#include "random.h"
 #include "script/standard.h"
 #include "sync.h"
 #include "txmempool.h"
@@ -23,6 +24,7 @@
 #endif
 
 #include <stdint.h>
+#include <algorithm>
 #include <map>
 #include <string>
 
@@ -161,9 +163,22 @@ int IsMyAddress(const std::string& address)
 }
 
 /**
- * Selects spendable outputs to create a transaction.
+ * A structure representing an transaction input.
  */
-int64_t SelectCoins(const std::string& fromAddress, CCoinControl& coinControl, int64_t additional)
+struct TxInput
+{
+    CAmount value;
+    COutPoint outpoint;
+};
+
+/**
+ * Selects all outputs from the wallet, which can be used to create an Omni transaction.
+ *
+ * @param fromAddress[in]  The sender's address
+ * @param vInputs[out]     The selected inputs
+ * @return The total selected amount
+ */
+static int64_t SelectAllEligibleCoins(const std::string& fromAddress, std::vector<TxInput>& vInputs)
 {
     // total output funds collected
     int64_t nTotal = 0;
@@ -172,12 +187,6 @@ int64_t SelectCoins(const std::string& fromAddress, CCoinControl& coinControl, i
     if (NULL == pwalletMain) {
         return 0;
     }
-
-    // assume 20 KB max. transaction size at 0.0001 per kilobyte
-    int64_t nMax = (COIN * (20 * (0.0001)));
-
-    // if referenceamount is set it is needed to be accounted for here too
-    if (0 < additional) nMax += additional;
 
     int nHeight = GetHeight();
     LOCK2(cs_main, pwalletMain->cs_wallet);
@@ -208,22 +217,73 @@ int64_t SelectCoins(const std::string& fromAddress, CCoinControl& coinControl, i
                 continue;
             }
 
-            std::string sAddress = CBitcoinAddress(dest).ToString();
-            if (msc_debug_tokens)
-                PrintToLog("%s(): sender: %s, outpoint: %s:%d, value: %d\n", __func__, sAddress, txid.GetHex(), n, txOut.nValue);
+            const std::string& sAddress = CBitcoinAddress(dest).ToString();
 
             // only use funds from the sender's address
             if (fromAddress == sAddress) {
                 COutPoint outpoint(txid, n);
-                coinControl.Select(outpoint);
+                TxInput input = {txOut.nValue, outpoint};
 
-                nTotal += txOut.nValue;
-
-                if (nMax <= nTotal) break;
+                vInputs.push_back(input);
+                nTotal += input.value;
             }
         }
+    }
+#endif
 
-        if (nMax <= nTotal) break;
+    return nTotal;
+}
+
+/**
+ * Selects spendable outputs to create  an Omni transaction.
+ *
+ * @param fromAddress[in]   The sender's address
+ * @param coinControl[out]  The selected coins
+ * @param additional[in]    Any additional amount to select (e.g. for refrence output)
+ * @return The total selected amount, or 0, if not enough coins are available to create a transactioon
+ */
+int64_t SelectCoins(const std::string& fromAddress, CCoinControl& coinControl, int64_t additional)
+{
+    // total output funds collected
+    int64_t nTotal = 0;
+
+#ifdef ENABLE_WALLET
+    if (NULL == pwalletMain) {
+        return 0;
+    }
+
+    // assume 20 KB max. transaction size at 0.0001 per kilobyte
+    int64_t nMax = (COIN * (20 * (0.0001)));
+
+    // if referenceamount is set it is needed to be accounted for here too
+    if (0 < additional) nMax += additional;
+
+    std::vector<TxInput> vInputs;
+    nTotal = SelectAllEligibleCoins(fromAddress, vInputs);
+
+    // check, if there are enough coins to cover the required value
+    if (nTotal < nMax) {
+        // TODO: fail hard, once we have accurate selection
+    }
+
+    // to avoid UTXO clutter
+    std::random_shuffle(vInputs.begin(), vInputs.end(), GetRandInt);
+    nTotal = 0; // now actually selected coins
+
+    // select enough coins to cover the required value
+    for (std::vector<TxInput>::const_iterator it = vInputs.begin(); it != vInputs.end(); ++it) {
+        const TxInput& input = *it;
+
+        coinControl.Select(input.outpoint);
+        nTotal += input.value;
+
+        if (msc_debug_tokens)
+            PrintToLog("%s: selecting sender: %s, outpoint: %s:%d, value: %d\n (total: %d)",
+                    __func__, fromAddress, input.outpoint.hash.GetHex(), input.outpoint.n, input.value, nTotal);
+
+        if (nMax <= nTotal) {
+            break;
+        }
     }
 #endif
 

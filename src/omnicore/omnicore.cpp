@@ -2392,6 +2392,7 @@ int mastercore::WalletTxBuilder(const std::string& senderAddress, const std::str
     coinControl.destChange = addr.Get();
 
     // Select the inputs
+    // TODO: fail hard (0 >= ...), once we have accurate selection
     if (0 > SelectCoins(senderAddress, coinControl, referenceAmount)) { return MP_INPUTS_INVALID; }
 
     // Encode the data outputs
