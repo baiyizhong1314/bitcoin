@@ -61,6 +61,8 @@
 #include "zmq/zmqnotificationinterface.h"
 #endif
 
+#include "omnilite/signals.h"
+
 using namespace std;
 
 bool fFeeEstimatesInitialized = false;
@@ -73,6 +75,9 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 #if ENABLE_ZMQ
 static CZMQNotificationInterface* pzmqNotificationInterface = NULL;
 #endif
+
+// Omni Lite
+static CChainInterface* chainNotificationInterface = NULL;
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
@@ -246,6 +251,13 @@ void Shutdown()
         pzmqNotificationInterface = NULL;
     }
 #endif
+    
+    // Omni Lite
+    if (chainNotificationInterface) {
+        UnregisterValidationInterface(chainNotificationInterface);
+        delete chainNotificationInterface;
+        chainNotificationInterface = NULL;
+    }
 
 #ifndef WIN32
     try {
@@ -1269,6 +1281,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 #endif
     if (mapArgs.count("-maxuploadtarget")) {
         CNode::SetMaxOutboundTarget(GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET)*1024*1024);
+    }
+
+    // Omni Lite:
+    chainNotificationInterface = new CChainInterface;
+
+    if (chainNotificationInterface) {
+        RegisterValidationInterface(chainNotificationInterface);
     }
 
     // ********************************************************* Step 7: load block chain

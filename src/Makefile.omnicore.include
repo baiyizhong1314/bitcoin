@@ -36,7 +36,8 @@ OMNICORE_H = \
   omnicore/utilsbitcoin.h \
   omnicore/version.h \
   omnicore/walletcache.h \
-  omnicore/wallettxs.h
+  omnicore/wallettxs.h \
+  omnilite/signals.h
 
 OMNICORE_CPP = \
   omnicore/activation.cpp \
@@ -74,7 +75,8 @@ OMNICORE_CPP = \
   omnicore/utilsbitcoin.cpp \
   omnicore/version.cpp \
   omnicore/walletcache.cpp \
-  omnicore/wallettxs.cpp
+  omnicore/wallettxs.cpp \
+  omnilite/signals.cpp
 
 libbitcoin_server_a_SOURCES += \
   $(OMNICORE_CPP) \
